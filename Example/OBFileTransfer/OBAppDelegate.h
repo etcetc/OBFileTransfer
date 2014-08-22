@@ -1,9 +1,9 @@
 //
 //  OBAppDelegate.h
-//  OBFileTransfer
+//  FileTransferPlay
 //
-//  Created by CocoaPods on 08/19/2014.
-//  Copyright (c) 2014 etcetc. All rights reserved.
+//  Created by Farhad on 6/20/14.
+//  Copyright (c) 2014 NoPlanBees. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

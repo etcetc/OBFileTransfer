@@ -5,15 +5,21 @@
 [![License](https://img.shields.io/cocoapods/l/OBFileTransfer.svg?style=flat)](http://cocoadocs.org/docsets/OBFileTransfer)
 [![Platform](https://img.shields.io/cocoapods/p/OBFileTransfer.svg?style=flat)](http://cocoadocs.org/docsets/OBFileTransfer)
 
+OBFileTransfer provides simple foreground and background file upload and download services with retry to various data stores.  Currently only stores for standard
+server and S3 are provided.
+
 ## Usage
 
-To run the example project, clone the repo, and run `pod install` from the Example directory first.
+To run the example project, clone the repo, and run `pod install` from the Example directory first.  In Example directory see OBViewController.m for example usage.
+Basically, you create a (currently singleton) OBFileTransferManager object, optionally set the base URL and upload and download directories (a convenience so files can be specified just as offsets to these directories, but not a requirement), and then indicate that you want to upload or download a file.  
+
+The client (the OBViewController in the Example) must implement the OBFileTransferDelegate delegate methods, which currently are quite simply callbacks for getting information regarding the file transfer completion, progress, and indication of retry.
 
 ## Requirements
 
 ## Installation
 
-OBFileTransfer is available through [CocoaPods](http://cocoapods.org). To install
+OBFileTransfer will soon be available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
     pod "OBFileTransfer"

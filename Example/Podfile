@@ -1,5 +1,6 @@
 target 'OBFileTransfer', :exclusive => true do
   pod "OBFileTransfer", :path => "../"
+  pod "OBLogger"
 end
 
 target 'Tests', :exclusive => true do
