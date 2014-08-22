@@ -2,8 +2,8 @@
 //  OBS3FileTransferAgent.m
 //  FileTransferPlay
 //
-//  Created by Farhad on 6/26/14.
-//  Copyright (c) 2014 NoPlanBees. All rights reserved.
+//  Created by Farhad Farzaneh on 6/26/14.
+//  Copyright (c) 2014 OneBeat. All rights reserved.
 //
 
 #import "OBS3FileTransferAgent.h"

@@ -2,8 +2,8 @@
 //  OBAppDelegate.m
 //  FileTransferPlay
 //
-//  Created by Farhad on 6/20/14.
-//  Copyright (c) 2014 NoPlanBees. All rights reserved.
+//  Created by Farhad Farzaneh on 6/20/14.
+//  Copyright (c) 2014 OneBeat. All rights reserved.
 //
 
 #import "OBAppDelegate.h"
@@ -15,6 +15,9 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
+    [OBLogger instance].writeToConsole = YES;
+    [[OBLogger instance] reset];
+    [[OBLogger instance] logEvent:OBLogEventAppStarted];
     return YES;
 }
 							

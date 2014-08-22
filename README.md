@@ -27,6 +27,7 @@ it, simply add the following line to your Podfile:
 ## Author
 
 etcetc, ff@onebeat.com
+Thanks for initial podification, bug fixes, and other contributions by Sani ElFishawy
 
 ## License
 

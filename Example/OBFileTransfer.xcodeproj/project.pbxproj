@@ -80,6 +80,7 @@
 		A5769B4819A6D041003EC2EB /* ok.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ok.png; sourceTree = "<group>"; };
 		A5769B4919A6D041003EC2EB /* retry.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = retry.png; sourceTree = "<group>"; };
 		A5769B4A19A6D041003EC2EB /* upload.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = upload.png; sourceTree = "<group>"; };
+		A5769B5319A7ABA3003EC2EB /* TODO.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO.txt; sourceTree = "<group>"; };
 		EA9DE7495DE34112B0623C3E /* libPods-OBFileTransfer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OBFileTransfer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F5E63724FA9E4B08B432CDB8 /* Pods-OBFileTransfer.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OBFileTransfer.xcconfig"; path = "Pods/Pods-OBFileTransfer.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -204,6 +205,7 @@
 				5196B59748194EEEA7DDAF1D /* OBFileTransfer.podspec */,
 				2218D84B032B49019D33F54C /* README.md */,
 				38A689C6CBA74C92A5548109 /* LICENSE */,
+				A5769B5319A7ABA3003EC2EB /* TODO.txt */,
 			);
 			name = "Podspec Metadata";
 			sourceTree = "<group>";

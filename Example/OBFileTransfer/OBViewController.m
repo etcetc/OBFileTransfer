@@ -2,8 +2,8 @@
 //  OBViewController.m
 //  FileTransferPlay
 //
-//  Created by Farhad on 6/20/14.
-//  Copyright (c) 2014 NoPlanBees. All rights reserved.
+//  Created by Farhad Farzaneh on 6/20/14.
+//  Copyright (c) 2014 OneBeat. All rights reserved.
 //
 
 #import "OBViewController.h"
@@ -37,6 +37,7 @@
         _fileTransferManager.downloadDirectory = [self documentDirectory];
         
         _fileTransferManager.remoteUrlBase = self.baseUrl;
+//        _fileTransferManager.maxAttempts = 2;
         
 //        _fileTransferManager.remoteUrlBase = @"http://localhost:3000/api/upload/";
 //        _fileTransferManager.remoteUrlBase = @"http://localhost:3000/videos/create";
@@ -138,6 +139,11 @@
     }];
 }
 
+//-(NSTimeInterval) retryTimeoutValue:(NSInteger)retryAttempt
+//{
+//    return (NSTimeInterval) 3;
+//}
+//
 #pragma mark - Utility
 
 -(void) displayPending

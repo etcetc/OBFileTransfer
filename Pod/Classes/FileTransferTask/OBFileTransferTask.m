@@ -2,8 +2,8 @@
 //  OBFileTransferTask.m
 //  FileTransferPlay
 //
-//  Created by Farhad on 7/28/14.
-//  Copyright (c) 2014 NoPlanBees. All rights reserved.
+//  Created by Farhad Farzaneh on 7/28/14.
+//  Copyright (c) 2014 OneBeat. All rights reserved.
 //
 
 #import "OBFileTransferTask.h"
@@ -77,7 +77,7 @@ NSString * const StatusKey = @"status";
 }
 
 -(NSString *) description {
-    return [NSString stringWithFormat:@"%@ %@ task '%@' remote:%@ local:%@ [%d]", [self statusDescription],self.transferDirection, self.marker, self.remoteUrl, self.localFilePath,self.attemptCount];
+    return [NSString stringWithFormat:@"%@ %@ task '%@' remote:%@ local:%@ [%ld]", [self statusDescription],self.transferDirection, self.marker, self.remoteUrl, self.localFilePath,(long)self.attemptCount];
 }
 
 -(NSDictionary *) stateSummary

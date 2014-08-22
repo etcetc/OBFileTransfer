@@ -2,8 +2,8 @@
 //  OBFileTransferManager.h
 //  FileTransferPlay
 //
-//  Created by Farhad on 6/20/14.
-//  Copyright (c) 2014 NoPlanBees. All rights reserved.
+//  Created by Farhad Farzaneh on 6/20/14.
+//  Copyright (c) 2014 OneBeat. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -14,12 +14,11 @@
 @protocol OBFileTransferDelegate <NSObject>
 
 -(void) fileTransferCompleted: (NSString *)markerId withError: (NSError *)error;
--(void) fileTransferProgress: (NSString *)markerId percent: (NSUInteger) progress;
--(void) fileTransferRetrying: (NSString *)markerId attemptCount: (NSUInteger)attemptCount withError: (NSError *)error;
 
 @optional
--(void) transferProgress: (float) progress withMarker:(NSString *)markerId;
-
+-(void) fileTransferProgress: (NSString *)markerId percent: (NSUInteger) progress;
+-(void) fileTransferRetrying: (NSString *)markerId attemptCount: (NSUInteger)attemptCount withError: (NSError *)error;
+-(NSTimeInterval) retryTimeoutValue: (NSInteger)retryAttempt;
 @end
 
 typedef NS_ENUM(NSUInteger, FileManagerErrorCode) {
@@ -35,7 +34,7 @@ typedef NS_ENUM(NSUInteger, FileManagerErrorCode) {
 @property (nonatomic,strong) NSString * remoteUrlBase;
 @property (nonatomic,strong) id<OBFileTransferDelegate> delegate;
 @property (nonatomic) BOOL foregroundTransferOnly;
-
+@property (nonatomic) NSUInteger maxAttempts;
 @property (nonatomic) OBFileStore fileStore;
 
 

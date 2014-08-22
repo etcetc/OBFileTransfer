@@ -1,0 +1,11 @@
+- Add configurations for FileTransferManager
+  x number of retries
+  c pluggable retry algorithm
+- Make AWS/Server optional
+  - make them subspecs
+  - If AWS is not present, no need to link in the AWS frameworks
+- AWS configuration
+  - Use TVM or not
+  - TVM server URL & parameters should not be hardcoded
+- Allow it to be used w/o pods, but simply as a library
+- Add tests

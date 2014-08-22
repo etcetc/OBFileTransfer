@@ -2,7 +2,7 @@
 //  OBFileTransferTaskManager.m
 //  FileTransferPlay
 //
-//  Created by Farhad on 7/28/14.
+//  Created by Farhad Farzaneh on 7/28/14.
 //  Copyright (c) 2014 All rights reserved.
 //
 

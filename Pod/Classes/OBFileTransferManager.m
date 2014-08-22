@@ -11,7 +11,7 @@
 //    OBFileTransferManager ftm = [OBFileTransferManager instance]
 //    [ftm uploadFile: someFilePathString to:remoteUrlString withMarker:markerString
 //
-//  Created by Farhad on 6/20/14.
+//  Created by Farhad Farzaneh on 6/20/14.
 //  Copyright (c) 2014 All rights reserved.
 //
 
@@ -36,6 +36,8 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 
 OBFileTransferTaskManager * _transferTaskManager = nil;
 
+#define MAX_ATTEMPTS 5
+
 //--------------
 // Instantiation
 //--------------
@@ -57,6 +59,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         instance = [[self alloc] init];
+        instance.maxAttempts = MAX_ATTEMPTS;
     });
     return instance;
 }
@@ -237,7 +240,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 {
     NSArray *pendingTasks = [self.transferTaskManager pendingTasks];
     if ( pendingTasks.count > 0 ) {
-        OB_INFO(@"Retrying %d pending tasks",pendingTasks.count);
+        OB_INFO(@"Retrying %lu pending tasks",(unsigned long)pendingTasks.count);
         for ( OBFileTransferTask * obTask in [self.transferTaskManager pendingTasks] ) {
             NSURLSessionTask * task = [self createNsTaskFromObTask: obTask];
             [self.transferTaskManager processing:obTask withNsTask:task];
@@ -300,9 +303,6 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // Upload & Download Completion Handling
 // ------
 
-// TODO: make max attempts a configuration parameter
-#define MAX_ATTEMPTS 5
-
 // NOTE::: This gets called for upload and download when the task is complete, possibly w/ framework or server error (server error has bad response code)
 - (void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
@@ -329,7 +329,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
             error = [self createErrorFromBadHttpResponse:response.statusCode];
             OB_WARN(@"%@ File Transfer for %@ received status code %ld and error %@",obtask.typeUpload ? @"Upload" : @"Download", marker,(long)response.statusCode, error.localizedDescription);
         }
-        if ( error == nil || obtask.attemptCount >= MAX_ATTEMPTS ) {
+        if ( error == nil || obtask.attemptCount >= self.maxAttempts ) {
             [[self transferTaskManager] removeTransferTaskForNsTask:task];
             [self updateBackground];
             [self.delegate fileTransferCompleted:marker withError:error];
@@ -338,10 +338,16 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
             if ( !self.timerEngaged ) {
                 self.timerEngaged = YES;
                 [self.transferTaskManager updateRetryTimerCount];
+                NSUInteger retryTimerValue;
+                if ( [self.delegate respondsToSelector:@selector(retryTimeoutValue:)] )
+                    retryTimerValue = [self.delegate retryTimeoutValue:self.transferTaskManager.retryTimerCount];
+                else
+                    retryTimerValue = [self retryTimeoutValue: self.transferTaskManager.retryTimerCount];
+                
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    OB_INFO(@"Setting up to retry pending tasks in %lf seconds",[self retryTimerValue]);
+                    OB_INFO(@"Setting up to retry pending tasks in %.2lu seconds",(unsigned long)retryTimerValue);
                     [self requestBackground];
-                    [self performSelector:@selector(retryPending) withObject:nil afterDelay:[self retryTimerValue]];
+                    [self performSelector:@selector(retryPending) withObject:nil afterDelay:retryTimerValue];
                 });
             }
             [self.delegate fileTransferRetrying:marker attemptCount: obtask.attemptCount  withError:error];
@@ -564,10 +570,10 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 }
 
 // Returns the timer value in seconds...
--(NSTimeInterval) retryTimerValue
+-(NSTimeInterval) retryTimeoutValue: (NSUInteger)retryAttempt
 {
 //    return (NSTimeInterval)10.0;
-    return (NSTimeInterval)10*(1<<(MIN(self.transferTaskManager.retryTimerCount,6)-1));
+    return (NSTimeInterval)10*(1<<(retryAttempt-1));
 }
 
 @end

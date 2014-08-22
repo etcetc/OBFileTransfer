@@ -2,8 +2,8 @@
 //  OBTransferView.m
 //  FileTransferPlay
 //
-//  Created by Farhad on 6/24/14.
-//  Copyright (c) 2014 NoPlanBees. All rights reserved.
+//  Created by Farhad Farzaneh on 6/24/14.
+//  Copyright (c) 2014 OneBeat. All rights reserved.
 //
 
 #import "OBTransferView.h"

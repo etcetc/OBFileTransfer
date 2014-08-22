@@ -2,8 +2,8 @@
 //  OBFileTransferAgentFactory.m
 //  FileTransferPlay
 //
-//  Created by Farhad on 7/18/14.
-//  Copyright (c) 2014 NoPlanBees. All rights reserved.
+//  Created by Farhad Farzaneh on 7/18/14.
+//  Copyright (c) 2014 OneBeat. All rights reserved.
 //
 
 #import "OBFileTransferAgentFactory.h"
