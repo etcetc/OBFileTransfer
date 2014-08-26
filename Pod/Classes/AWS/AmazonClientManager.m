@@ -21,12 +21,15 @@
 #import "AmazonTVMClient.h"
 
 static AmazonS3Client       *s3  = nil;
-static AmazonTVMClient      *tvm = nil;
+static AmazonTVMClient      * _tvm = nil;
 
-// TODO Make the TVM server URL be configurable/settable
+// HACK GARF - remove this!!
 #define TVM_SERVER_URL @"http://default-environment-kkh4pgjjij.elasticbeanstalk.com"
 
 NSString * const kAmazonTokenHeader = @"x-amz-security-token";
+
+@interface AmazonClientManager ()
+@end
 
 @implementation AmazonClientManager
 
@@ -36,14 +39,19 @@ NSString * const kAmazonTokenHeader = @"x-amz-security-token";
     return s3;
 }
 
-+(AmazonTVMClient *)tvm
++(void)setTvmServerUrl: (NSString *) tvmServerUrl;
 {
 //    TODO - will want to use SSL later
-    if (tvm == nil) {
-        tvm = [[AmazonTVMClient alloc] initWithEndpoint:TVM_SERVER_URL useSSL:NO];
+    if ( ![_tvm.endpoint isEqualToString:tvmServerUrl] ) {
+        _tvm = [[AmazonTVMClient alloc] initWithEndpoint:tvmServerUrl useSSL:NO];
     }
+}
 
-    return tvm;
++(AmazonTVMClient *) tvm
+{
+    if ( _tvm == nil )
+        [self setTvmServerUrl:TVM_SERVER_URL];
+    return _tvm;
 }
 
 +(bool)hasCredentials

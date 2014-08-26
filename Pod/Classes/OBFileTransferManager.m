@@ -161,38 +161,38 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }];
 }
 
--(void) cancelSessionTasks
+-(void) cancelSessionTasks: (void(^)()) completionBlockOrNil;
 {
     OB_DEBUG(@"Canceling session tasks");
     [[self session] getTasksWithCompletionHandler: ^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
         if ( uploadTasks.count != 0 ) {
             for ( NSURLSessionTask * task in uploadTasks ) {
-                OB_DEBUG(@"Canceling upload task %@",[[self.transferTaskManager transferTaskForNSTask:task] description]);
+                OB_DEBUG(@"Canceling upload task %lu with reference: %@",(unsigned long)task.taskIdentifier,[[self.transferTaskManager transferTaskForNSTask:task] description]);
                 [task cancel];
             }
         }
         if ( downloadTasks.count != 0 ) {
             for ( NSURLSessionTask * task in downloadTasks ) {
-                OB_DEBUG(@"Canceling download task %@",[[self.transferTaskManager transferTaskForNSTask:task] description]);
+                OB_DEBUG(@"Canceling download task %lu with reference: %@",(unsigned long)task.taskIdentifier,[[self.transferTaskManager transferTaskForNSTask:task] description]);
                 [task cancel];
             }
             
         }
+        if ( completionBlockOrNil ) completionBlockOrNil();
     }];
 }
 
--(void) cancelSessionTask: (NSUInteger) taskIdentifier
+-(void) cancelSessionTask: (NSUInteger) taskIdentifier completion: (void(^)())completionBlockOrNil
 {
     OB_DEBUG(@"Canceling session task %lu",(unsigned long)taskIdentifier);
     [[self session] getTasksWithCompletionHandler: ^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
-        if ( uploadTasks.count != 0 ) {
-            for ( NSURLSessionTask * task in [uploadTasks arrayByAddingObjectsFromArray:downloadTasks] ) {
-                if ( task.taskIdentifier == taskIdentifier ) {
-                    OB_DEBUG(@"Canceling task identifier %lu",taskIdentifier);
-                    [task cancel];
-                }
+        for ( NSURLSessionTask * task in [uploadTasks arrayByAddingObjectsFromArray:downloadTasks] ) {
+            if ( task.taskIdentifier == taskIdentifier ) {
+                OB_DEBUG(@"Canceling task identifier %lu",(unsigned long)taskIdentifier);
+                [task cancel];
             }
         }
+        if ( completionBlockOrNil ) completionBlockOrNil();
     }];
 }
 
@@ -202,11 +202,14 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // --------------
 
 // This resets everything by cancelling all tasks and removing them from our task Manager
--(void) reset
+// Note that cancelSessionTasks is asynchronous
+-(void) reset:(void(^)())completionBlockOrNil
 {
-    [self cancelSessionTasks];
-    self. timerEngaged = 0;
-    [self.transferTaskManager reset];
+    [self cancelSessionTasks: ^{
+        self. timerEngaged = 0;
+        [self.transferTaskManager reset];
+        if ( completionBlockOrNil ) completionBlockOrNil();
+    }];
 }
 
 // Upload the file at the indicated filePath to the remoteFileUrl (do not include target filename here!).
@@ -235,8 +238,9 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 {
     OBFileTransferTask *obTask =[[self transferTaskManager] transferTaskWithMarker:marker];
     if (  obTask != nil ) {
-        [self cancelSessionTask:obTask.nsTaskIdentifier];
-        [[self transferTaskManager] removeTaskWithMarker:marker];
+        [self cancelSessionTask:obTask.nsTaskIdentifier completion: ^{
+            [[self transferTaskManager] removeTaskWithMarker:marker];
+        }];
     }
 }
 
@@ -341,10 +345,17 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // Upload & Download Completion Handling
 // ------
 
-// NOTE::: This gets called for upload and download when the task is complete, possibly w/ framework or server error (server error has bad response code)
+// NOTE::: This gets called for upload and download when the task is complete, possibly w/ framework or server error (server error has bad response code which we cast into an NSError)
 - (void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:task];
+    if ( obtask == nil ) {
+        if ( error.code == NSURLErrorCancelled )
+            OB_INFO(@"Unable to find reference for task Identifier %lu because it had been cancelled",(unsigned long)task.taskIdentifier);
+        else
+            OB_WARN(@"Unable to find reference for task Identifier %lu",(unsigned long)task.taskIdentifier);
+        return;
+    }
     NSString *marker = obtask.marker;
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)task.response;
     //    OB_DEBUG(@"File transfer %@ response = %@",marker, response);

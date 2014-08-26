@@ -44,7 +44,7 @@ typedef NS_ENUM(NSUInteger, FileManagerErrorCode) {
 - (NSURLSession *) session;
 
 // Reset the state of all the tasks
--(void) reset;
+-(void) reset:(void(^)())completionBlockOrNil;
 
 // Main API
 - (void) uploadFile:(NSString *)localFilePath to:(NSString *)remoteUrl withMarker: (NSString *)markerId withParams:(NSDictionary *)params;

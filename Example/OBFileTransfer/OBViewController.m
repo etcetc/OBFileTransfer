@@ -73,13 +73,16 @@
 -(IBAction)start:(id)sender
 {
     [self clearTransferViews];
-    [self.fileTransferManager reset];
-    [self displayPending];
-//    [self uploadFile: @"uploadtest.jpg"];
-//    [self downloadFile:@"test4128.jpg"];
-//    [self uploadFile: @"uploadtest.jpg"];
-    [self downloadFile:@"test9062.jpg"];
-//    [self downloadFile:@"test9062_nothere.jpg"];
+    [self.fileTransferManager reset:^{
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
+            [self displayPending];
+            [self downloadFile:@"test9062.jpg"];
+            [self uploadFile: @"uploadtest.jpg"];
+            //    [self downloadFile:@"test4128.jpg"];
+            //    [self uploadFile: @"uploadtest.jpg"];
+            //    [self downloadFile:@"test9062_nothere.jpg"];
+        }];
+    }];
 }
 
 -(IBAction)retryPending:(id)sender
@@ -148,7 +151,6 @@
 
 -(void) displayPending
 {
-    
     self.pendingInfo.text = [self.fileTransferManager pendingSummary];
 }
 
@@ -213,8 +215,9 @@
 
 
 - (IBAction)reset:(id)sender {
-    [self.fileTransferManager reset];
-    [self displayPending];
+    [self.fileTransferManager reset: ^{
+        [self displayPending];
+    }];
 }
 
 - (IBAction)showLog:(id)sender {

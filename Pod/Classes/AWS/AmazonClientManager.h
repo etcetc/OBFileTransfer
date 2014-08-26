@@ -18,12 +18,15 @@
 #import <AWSS3/AWSS3.h>
 #import "Response.h"
 
+
 @interface AmazonClientManager:NSObject {
 }
 
-+(AmazonS3Client *)s3;
+@property (nonatomic,strong) NSString * tvmServerUrl;
 
++(AmazonS3Client *)s3;
 +(bool)hasCredentials;
++(void)setTvmServerUrl: (NSString *) tvmServerUrl;
 +(Response *)validateCredentials;
 +(void)wipeAllCredentials;
 + (BOOL)wipeCredentialsOnAuthError:(NSError *)error;

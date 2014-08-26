@@ -10,3 +10,7 @@
   - TVM server URL & parameters should not be hardcoded
 - Allow it to be used w/o pods, but simply as a library
 - Add tests
+- parameterize all the configuration parameters
+  - S3 base url
+  - server base url
+  - tvm url
