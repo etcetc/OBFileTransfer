@@ -29,6 +29,13 @@
                     <rect key="frame" x="188" y="27" width="81" height="2"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                 </progressView>
+                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text=" " lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="uDE-HP-d5A" userLabel="retry counter">
+                    <rect key="frame" x="299" y="4" width="10" height="21"/>
+                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                    <nil key="highlightedColor"/>
+                </label>
             </subviews>
             <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
@@ -36,6 +43,7 @@
                 <outlet property="direction" destination="lYk-EP-IBD" id="Hs4-ke-oFd"/>
                 <outlet property="filename" destination="Mcr-b7-5FJ" id="5KC-oO-LMG"/>
                 <outlet property="progressBar" destination="Cct-en-Wnb" id="2ay-PN-Rg2"/>
+                <outlet property="retryCounter" destination="uDE-HP-d5A" id="SRj-ck-8QM"/>
                 <outlet property="status" destination="zNO-xe-Dx7" id="DRu-DF-Yvg"/>
             </connections>
         </view>

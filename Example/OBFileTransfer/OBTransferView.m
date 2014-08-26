@@ -22,6 +22,16 @@
 
 -(void) updateStatus: (TransferStatus) status
 {
+    [self updateStatus:status retryCount:0];
+}
+
+-(void) updateStatus: (TransferStatus) status retryCount: (NSUInteger) retryCount
+{
+    NSString *retryCountText = @"";
+    if ( retryCount > 0 )
+        retryCountText = [NSString stringWithFormat:@"%lu",retryCount];
+    self.retryCounter.text = retryCountText;
+    
     switch (status) {
         case Transferring:
             self.status.image = nil;

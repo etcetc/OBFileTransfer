@@ -130,7 +130,7 @@
 {
     OB_INFO(@"File transfer with marker %@ pending retry",markerId);
     [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
-        [(OBTransferView *)self.transferViews[markerId] updateStatus:PendingRetry];
+        [(OBTransferView *)self.transferViews[markerId] updateStatus:PendingRetry retryCount:attemptCount-1];
         [self displayPending];
     }];
 }

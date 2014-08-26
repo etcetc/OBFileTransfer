@@ -27,10 +27,12 @@ typedef NS_ENUM(NSUInteger, TransferDirection) {
 @property (nonatomic,weak) IBOutlet UIImageView * status;
 @property (nonatomic,weak) IBOutlet UIProgressView * progressBar;
 @property (nonatomic,weak) IBOutlet UILabel * filename;
+@property (weak, nonatomic) IBOutlet UILabel *retryCounter;
 
 -(id) initInRow: (NSUInteger) row;
 
 -(void) updateStatus: (TransferStatus) status;
+-(void) updateStatus: (TransferStatus) status retryCount: (NSUInteger) retryCount;
 -(void) updateProgress: (NSUInteger) percent;
 -(void) startTransfer: (NSString *)title upload: (TransferDirection) direction;
 
