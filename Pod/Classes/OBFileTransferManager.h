@@ -41,6 +41,7 @@ typedef NS_ENUM(NSUInteger, FileManagerErrorCode) {
 +(OBFileTransferManager *) instance;
 
 -(void) initSession;
+- (NSURLSession *) session;
 
 // Reset the state of all the tasks
 -(void) reset;

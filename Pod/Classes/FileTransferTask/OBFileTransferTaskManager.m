@@ -204,5 +204,15 @@
     self.retryTimerCount=0;
     [self saveState];
 }
+
+-(void) resetRetries
+{
+    for ( OBFileTransferTask *task in self.tasks ) {
+        task.attemptCount = 0;
+    }
+    self.retryTimerCount = 0;
+    [self saveState];
+}
+
 @end
 

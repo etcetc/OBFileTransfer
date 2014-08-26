@@ -181,6 +181,21 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }];
 }
 
+-(void) cancelSessionTask: (NSUInteger) taskIdentifier
+{
+    OB_DEBUG(@"Canceling session task %lu",(unsigned long)taskIdentifier);
+    [[self session] getTasksWithCompletionHandler: ^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
+        if ( uploadTasks.count != 0 ) {
+            for ( NSURLSessionTask * task in [uploadTasks arrayByAddingObjectsFromArray:downloadTasks] ) {
+                if ( task.taskIdentifier == taskIdentifier ) {
+                    OB_DEBUG(@"Canceling task identifier %lu",taskIdentifier);
+                    [task cancel];
+                }
+            }
+        }
+    }];
+}
+
 #pragma mark - Main API
 // --------------
 // Main API
@@ -215,6 +230,16 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     [self processTransfer:markerId remote:remoteFileUrl local:filePath params:params upload:NO];
 }
 
+// Cancel a transfer with the indicated marker
+-(void) cancelTransfer: (NSString *) marker
+{
+    OBFileTransferTask *obTask =[[self transferTaskManager] transferTaskWithMarker:marker];
+    if (  obTask != nil ) {
+        [self cancelSessionTask:obTask.nsTaskIdentifier];
+        [[self transferTaskManager] removeTaskWithMarker:marker];
+    }
+}
+
 -(NSArray *) currentState
 {
     return [self.transferTaskManager currentState];
@@ -235,8 +260,21 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     return [[self.transferTaskManager transferTaskWithMarker:marker] stateSummary];
 }
 
-// Retry all pending transfers
+// Retry all pending transfers - to be called externally
+// Warning - this resets all the history on pending tasks and timers.  We want this because
+//  we don't want the client to unwittingly mess up the retry counts and timers by launching the app
+//  to make one more recording.  We can get more sophisticated by looking at reachability later one...
 -(void) retryPending
+{
+    [[self transferTaskManager] resetRetries];
+    [self retryPendingInternal];
+}
+
+
+// INTERNAL
+
+// Retry all pending transfers
+-(void) retryPendingInternal
 {
     NSArray *pendingTasks = [self.transferTaskManager pendingTasks];
     if ( pendingTasks.count > 0 ) {
@@ -246,10 +284,10 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
             [self.transferTaskManager processing:obTask withNsTask:task];
             [task resume];
         }
-//        Cancel any timers in case we are doing this with an override
-        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(retryPending) object:nil];
-        self.timerEngaged = NO;
     }
+//    Cancel any timers because we are retrying everything.  Then if there is a failure, we re-engage the timer
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(retryPendingInternal) object:nil];
+    self.timerEngaged = NO;
 }
 
 
@@ -347,7 +385,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
                 dispatch_async(dispatch_get_main_queue(), ^{
                     OB_INFO(@"Setting up to retry pending tasks in %.2lu seconds",(unsigned long)retryTimerValue);
                     [self requestBackground];
-                    [self performSelector:@selector(retryPending) withObject:nil afterDelay:retryTimerValue];
+                    [self performSelector:@selector(retryPendingInternal) withObject:nil afterDelay:retryTimerValue];
                 });
             }
             [self.delegate fileTransferRetrying:marker attemptCount: obtask.attemptCount  withError:error];
@@ -382,7 +420,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 {
     NSString *marker = [[self transferTaskManager] markerForNSTask:task];
     NSUInteger percentDone = (NSUInteger)(100*totalBytesWritten/totalBytesExpectedToWrite);
-    OB_DEBUG(@"Download progress %@: %lu%% [sent:%llu, of:%llu]", marker, (unsigned long)percentDone, totalBytesWritten, totalBytesExpectedToWrite);
+    OB_DEBUG(@"Download progress %@: %lu%% [received:%llu, of:%llu]", marker, (unsigned long)percentDone, totalBytesWritten, totalBytesExpectedToWrite);
     if ( [self.delegate respondsToSelector:@selector(fileTransferProgress:percent:)] ) {
         NSString *marker = [[self transferTaskManager] markerForNSTask:task];
         [self.delegate fileTransferProgress: marker percent:percentDone];
@@ -405,10 +443,10 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         }
         
         [[NSFileManager defaultManager] copyItemAtPath:location.path toPath:localFilePath  error:&error];
-        OB_DEBUG(@"Current thread = %@",[NSThread currentThread]);
 //        If the copy fails we could have a situation where we indicate download completed normally, but it's incredibly unlikely....
+//        TODO: come up with a clean implementation for handling this error...
         if ( error != nil )
-            OB_ERROR(@"Unable to copy downloaded file to %@ with error: %@",localFilePath,error.localizedDescription);
+            OB_ERROR(@"Unable to copy downloaded file to '%@' due to error: %@",localFilePath,error.localizedDescription);
         else
             OB_DEBUG(@"Finished copying download file to %@",localFilePath);
     } else {
@@ -456,6 +494,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
             OB_INFO(@"Ending background tasks");
             [[UIApplication sharedApplication] endBackgroundTask: self.backgroundTaskIdentifier];
+            self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
         }];
     }
 }
@@ -464,7 +503,8 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 {
     if (  self.backgroundTaskIdentifier != UIBackgroundTaskInvalid ) {
         if ( [self.transferTaskManager pendingTasks].count == 0 ) {
-            OB_INFO(@"No pending tasks left so setting to 0");
+            OB_INFO(@"No pending tasks left so ending background tasks");
+            [[self transferTaskManager] resetRetryTimerCount];
             [[UIApplication sharedApplication] endBackgroundTask: self.backgroundTaskIdentifier];
             self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
         }

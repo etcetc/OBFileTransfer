@@ -18,8 +18,13 @@
 -(OBFileTransferTask *) transferTaskForNSTask: (NSURLSessionTask *)task;
 -(OBFileTransferTask *) transferTaskWithMarker:(NSString *)marker;
 -(void) removeTransferTaskForNsTask:(NSURLSessionTask *)nsTask;
+-(void) removeTaskWithMarker:(NSString *)marker;
 
 -(void)  updateRetryTimerCount;
+-(void)  resetRetryTimerCount;
+
+// Reset all the retry history for all pending tasks
+-(void) resetRetries;
 -(void) queueForRetry: (OBFileTransferTask *) obTask;
 -(void) processing: (OBFileTransferTask *) obTask withNsTask: (NSURLSessionTask *) nsTask;
 
