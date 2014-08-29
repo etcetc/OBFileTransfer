@@ -35,12 +35,6 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
 {
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:targetUrl]];
 
-    NSString *formFileInputName = params[FormFileFieldNameParamKey] == nil ? @"file" : params[FormFileFieldNameParamKey];
-    NSString *filename = params[FilenameParamKey] == nil ? [[filePath pathComponents] lastObject] : params[FilenameParamKey];
-    NSString *contentType =params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
-    
-    NSDictionary * coreParams = [self removeSpecialParams:params];
-
     [request setHTTPMethod:@"POST"];
     
     [request setValue:@"Keep-Alive" forHTTPHeaderField:@"Connection"];
@@ -50,19 +44,25 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
     
     NSMutableData *body = [[NSMutableData alloc] init];
 
-    NSMutableString *preString =  [[NSMutableString alloc] init];
-    [preString appendString:[NSString stringWithFormat:@"--%@\r\n", OBHttpFormBoundary]];
-    [preString appendString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",formFileInputName,filename]];
-    [preString appendString:[NSString stringWithFormat:@"Content-Type: %@\r\n",contentType]];
-    [preString appendString:@"Content-Transfer-Encoding: binary\r\n"];
-    [preString appendString:@"\r\n"];
+    if ( filePath != nil ) {
+        NSString *formFileInputName = params[FormFileFieldNameParamKey] == nil ? @"file" : params[FormFileFieldNameParamKey];
+        NSString *filename = params[FilenameParamKey] == nil ? [[filePath pathComponents] lastObject] : params[FilenameParamKey];
+        NSString *contentType =params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
+
+        NSMutableString *preString =  [[NSMutableString alloc] init];
+        [preString appendString:[NSString stringWithFormat:@"--%@\r\n", OBHttpFormBoundary]];
+        [preString appendString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",formFileInputName,filename]];
+        [preString appendString:[NSString stringWithFormat:@"Content-Type: %@\r\n",contentType]];
+        [preString appendString:@"Content-Transfer-Encoding: binary\r\n"];
+        [preString appendString:@"\r\n"];
 
 
-    [body appendData:[preString dataUsingEncoding:NSUTF8StringEncoding]];
-    [body appendData:[NSData dataWithContentsOfFile:filePath]];
-    [body appendData:[@"\r\n"dataUsingEncoding:NSUTF8StringEncoding]];
-
+        [body appendData:[preString dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[NSData dataWithContentsOfFile:filePath]];
+        [body appendData:[@"\r\n"dataUsingEncoding:NSUTF8StringEncoding]];
+    }
     
+    NSDictionary * coreParams = [self removeSpecialParams:params];
     if ( coreParams.count > 0 ) {
         NSMutableString *paramsString = [NSMutableString new];
         
@@ -85,7 +85,7 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
     return request;
 }
 
--(BOOL) hasEncodedBody
+-(BOOL) hasMultipartBody
 {
     return YES;
 }

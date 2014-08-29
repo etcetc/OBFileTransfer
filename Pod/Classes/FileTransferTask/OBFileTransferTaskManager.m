@@ -92,6 +92,20 @@
     [self saveState];
 }
 
+// TODO - replace with KVO at some point
+-(void) update: (OBFileTransferTask *)obTask  withStatus: (OBFileTransferTaskStatus) status
+{
+    obTask.status = status;
+    [self saveState];
+}
+
+// TODO - replace with KVO at some point
+-(void) update: (OBFileTransferTask *)obTask  withLocalFilePath: (NSString *) localFilePath
+{
+    obTask.localFilePath = localFilePath;
+    [self saveState];
+}
+
 // Finds a task which has the nsTask provided in the argument and returns its marker
 -(NSString *)markerForNSTask:(NSURLSessionTask *)nsTask
 {

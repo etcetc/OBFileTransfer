@@ -77,7 +77,7 @@
         [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
             [self displayPending];
             [self downloadFile:@"test9062.jpg"];
-            [self uploadFile: @"uploadtest.jpg"];
+//            [self uploadFile: @"uploadtest.jpg"];
             //    [self downloadFile:@"test4128.jpg"];
             //    [self uploadFile: @"uploadtest.jpg"];
             //    [self downloadFile:@"test9062_nothere.jpg"];

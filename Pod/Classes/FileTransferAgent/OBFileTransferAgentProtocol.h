@@ -11,5 +11,5 @@
 @protocol OBFileTransferAgentProtocol <NSObject>
 - (NSMutableURLRequest *) downloadFileRequest:(NSString *)sourcefileUrl withParams: (NSDictionary *)params;
 - (NSMutableURLRequest *) uploadFileRequest:(NSString *)filePath to:(NSString *)targetFileUrl withParams: (NSDictionary *)params;
-- (BOOL) hasEncodedBody;
+- (BOOL) hasMultipartBody;
 @end

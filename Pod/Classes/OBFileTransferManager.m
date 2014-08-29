@@ -20,6 +20,7 @@
 #import "OBServerFileTransferAgent.h"
 #import "OBFileTransferTaskManager.h"
 #import "OBNetwork.h"
+#import "OBFTMError.h"
 
 // *********************************
 // The File Transfer Manager
@@ -304,7 +305,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }
 }
 
-
+#pragma mark -- Internal
 -(void) processTransfer: (NSString *)marker remote: (NSString *)remoteFileUrl local:(NSString *)filePath params:(NSDictionary *)params upload:(BOOL) upload
 {
     NSString *fullRemoteUrl = [self fullRemotePath:remoteFileUrl];
@@ -324,69 +325,74 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     [task resume];
 }
 
+// Create a NS Task from the OBTask info
+// NOTE: FileTransferAgents have different behavrior as to whether they create a multipart body
+//   For example, a standard server upload will do so as a multipart request, but the S3 agent does not.
+//   Since the background file transfer manager expects a file, if there is a multipart body, we need to write the whole
+//   thing to a file.  Once the file is written, we can just reuse this and in case there is a retry, we don't need
+//   to go through the process of re-encoding this again.
+-(NSURLSessionTask *) createNsTaskFromObTask: (OBFileTransferTask *) obTask
+{
+    NSURLSessionTask *task;
+    OBFileTransferAgent * fileTransferAgent = [OBFileTransferAgentFactory fileTransferAgentInstance:obTask.remoteUrl];
+    
+    if ( obTask.typeUpload ) {
+        
+        NSError *error;
+        NSMutableURLRequest *request;
+        if ( ![self isLocalFile: obTask.localFilePath] ) {
+            request = [fileTransferAgent uploadFileRequest:obTask.localFilePath to:obTask.remoteUrl withParams:obTask.params];
+            NSString * tmpFile = [self temporaryFile:obTask.marker];
+            //        If the file already exists, we should delete it...
+            if ( [[NSFileManager defaultManager] fileExistsAtPath:tmpFile] ) {
+                [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:&error];
+                if ( error != nil )
+                    OB_ERROR(@"Unable to delete existing temporary file %@",tmpFile);
+                else
+                    OB_DEBUG(@"Deleted existing tmp file %@",tmpFile);
+                
+                error = nil;
+            }
+            if ( fileTransferAgent.hasMultipartBody ) {
+                if ( ![[request HTTPBody] writeToFile:tmpFile atomically:NO] ) {
+//                    TODO: Replace with specific bundle for this module rather than mail bundle
+                    error = [self createNSErrorForCode:OBFTMTmpFileCreateError];
+                }
+            } else {
+                [[NSFileManager defaultManager] copyItemAtPath:obTask.localFilePath toPath:tmpFile error:&error];
+                if ( error != nil )
+                    OB_ERROR(@"Unable to copy file %@ to temporary file %@",obTask.localFilePath, tmpFile);
+            }
+            
+            if ( error == nil ) {
+                [self.transferTaskManager update:obTask withLocalFilePath:tmpFile];
+            }
+            
+        } else {
+            request = [fileTransferAgent uploadFileRequest:nil to:obTask.remoteUrl withParams:nil];
+        }
+        
+        task = [[self session] uploadTaskWithRequest:request fromFile:[NSURL fileURLWithPath:obTask.localFilePath]];
+        
+    } else {
+        NSMutableURLRequest *request = [fileTransferAgent downloadFileRequest:obTask.remoteUrl withParams:obTask.params];
+        task = [[self session] downloadTaskWithRequest:request];
+    }
+    return task;
+}
+
+// Returns if the file is owned by the file transfer manager
+-(BOOL) isLocalFile: (NSString *)localFilePath
+{
+    return ( [localFilePath rangeOfString:[self tempDirectory]].location != NSNotFound );
+}
+
 #pragma mark - Delegates
 
 // --------------
 // Delegate Functions
 // --------------
 
-// ------
-// Security for Testing w/ Charles (to track info going up and down)
-// ------
-
-// TODO : Remove these
--(void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential *))completionHandler
-{
-    
-    NSLog(@">>>>>Received authentication challenge");
-    completionHandler(NSURLSessionAuthChallengeUseCredential,nil);
-}
-
--(void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential *))completionHandler
-{
-    
-    NSLog(@">>>>>Received task-level authentication challenge");
-    completionHandler(NSURLSessionAuthChallengeUseCredential,nil);
-    
-}
-
-// Internal
-
--(void) handleCompleted:(NSURLSessionTask *)task obtask:(OBFileTransferTask *)obtask error:(NSError *)error
-{
-    NSString *marker = obtask.marker;
-    [[self transferTaskManager] removeTransferTaskForNsTask:task];
-    [self updateBackground];
-    [self.delegate fileTransferCompleted:marker withError:error];
-}
-
--(void) uploadCompleted: (NSString *)marker
-{
-    NSError * error;
-    [[NSFileManager defaultManager] removeItemAtPath:[self temporaryFile:marker] error:&error];
-    if ( error != nil ) {
-        OB_WARN(@"Unable to delete file %@: %@",[self temporaryFile:marker],error.localizedDescription);
-    }
-}
-
--(void) setupRetryTimer
-{
-    if ( !self.timerEngaged ) {
-        self.timerEngaged = YES;
-        [self.transferTaskManager updateRetryTimerCount];
-        NSUInteger retryTimerValue;
-        if ( [self.delegate respondsToSelector:@selector(retryTimeoutValue:)] )
-            retryTimerValue = [self.delegate retryTimeoutValue:self.transferTaskManager.retryTimerCount];
-        else
-            retryTimerValue = [self retryTimeoutValue: self.transferTaskManager.retryTimerCount];
-        
-        dispatch_async(dispatch_get_main_queue(), ^{
-            OB_INFO(@"Setting up to retry pending tasks in %.2lu seconds",(unsigned long)retryTimerValue);
-            [self requestBackground];
-            [self performSelector:@selector(retryPendingInternal) withObject:nil afterDelay:retryTimerValue];
-        });
-    }
-}
 
 // ------
 // Upload & Download Completion Handling
@@ -417,12 +423,12 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         }
         
         if ( error == nil ) {
-            // Callback here only for successful upload. Callback for successful download is done in URLSession:downloadTask:didFinishDownloadingToURL
-            // after we have finished moving the file.  Kind of ugly but don't have an elegant solution right now
             if (obtask.typeUpload){
-                [self uploadCompleted: marker];
-                [self handleCompleted:task obtask:obtask error:error];
+                [self uploadCompleted: obtask];
+            } else if (obtask.status != FileTransferDownloadFileReady ) {
+                error = [self createNSErrorForCode: OBFTMTmpDownloadFileCopyError];
             }
+            [self handleCompleted:task obtask:obtask error:error];
             OB_INFO(@"%@ for %@ done", obtask.typeUpload ? @"Upload" : @"Download", marker);
         } else {
 //            There was an error
@@ -488,13 +494,11 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         }
         
         [[NSFileManager defaultManager] copyItemAtPath:location.path toPath:localFilePath  error:&error];
-//        If the copy fails we could have a situation where we indicate download completed normally, but it's incredibly unlikely....
-//        TODO: come up with a clean implementation for handling this error...
-        if ( error != nil )
+        if ( error != nil ) {
             OB_ERROR(@"Unable to copy downloaded file to '%@' due to error: %@",localFilePath,error.localizedDescription);
-        else {
+        } else {
+            [self.transferTaskManager update:obtask withStatus: FileTransferDownloadFileReady];
             OB_DEBUG(@"Finished copying download file to %@",localFilePath);
-            [self handleCompleted:downloadTask  obtask:obtask error:error];
         }
     } else {
         OB_ERROR(@"Download for %@ received status code %ld",obtask.marker,(long)response.statusCode);
@@ -530,6 +534,67 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         }
     }
 }
+
+#pragma mark -- Internal
+
+// ------
+// Security for Testing w/ Charles (to track info going up and down)
+// ------
+
+// TODO : Remove these
+-(void)URLSession:(NSURLSession *)session didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential *))completionHandler
+{
+    
+    NSLog(@">>>>>Received authentication challenge");
+    completionHandler(NSURLSessionAuthChallengeUseCredential,nil);
+}
+
+-(void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential *))completionHandler
+{
+    
+    NSLog(@">>>>>Received task-level authentication challenge");
+    completionHandler(NSURLSessionAuthChallengeUseCredential,nil);
+    
+}
+
+
+-(void) handleCompleted:(NSURLSessionTask *)task obtask:(OBFileTransferTask *)obtask error:(NSError *)error
+{
+    NSString *marker = obtask.marker;
+    [[self transferTaskManager] removeTransferTaskForNsTask:task];
+    [self updateBackground];
+    [self.delegate fileTransferCompleted:marker withError:error];
+}
+
+-(NSError *) uploadCompleted: (OBFileTransferTask *)obTask;
+{
+    NSError * error;
+    [[NSFileManager defaultManager] removeItemAtPath:obTask.localFilePath error:&error];
+    if ( error != nil ) {
+        OB_WARN(@"Unable to delete local file %@: %@",obTask.localFilePath,error.localizedDescription);
+    }
+    return error;
+}
+
+-(void) setupRetryTimer
+{
+    if ( !self.timerEngaged ) {
+        self.timerEngaged = YES;
+        [self.transferTaskManager updateRetryTimerCount];
+        NSUInteger retryTimerValue;
+        if ( [self.delegate respondsToSelector:@selector(retryTimeoutValue:)] )
+            retryTimerValue = [self.delegate retryTimeoutValue:self.transferTaskManager.retryTimerCount];
+        else
+            retryTimerValue = [self retryTimeoutValue: self.transferTaskManager.retryTimerCount];
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            OB_INFO(@"Setting up to retry pending tasks in %.2lu seconds",(unsigned long)retryTimerValue);
+            [self requestBackground];
+            [self performSelector:@selector(retryPendingInternal) withObject:nil afterDelay:retryTimerValue];
+        });
+    }
+}
+
 
 // -------
 //  Background (only used for timer events, which only occurs if we have pending tasks)
@@ -607,6 +672,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     return _tempDirectory;
 }
 
+// A temporary file is super-temporary and used to create the full transmit package
 -(NSString *) temporaryFile: (NSString *)marker
 {
     return [[self tempDirectory] stringByAppendingPathComponent:marker];
@@ -617,47 +683,14 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     NSError *error = nil;
     if ( responseCode/100 != 2 ) {
         NSString *description  = [NSHTTPURLResponse localizedStringForStatusCode:responseCode];
-        NSString *bundleName =  [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
-        error = [NSError errorWithDomain:bundleName code:FileManageErrorBadHttpResponse userInfo:@{NSLocalizedDescriptionKey: description}];
+        error = [NSError errorWithDomain:NSURLErrorDomain code:FileManageErrorBadHttpResponse userInfo:@{NSLocalizedDescriptionKey: description}];
     }
     return error;
 }
 
--(NSURLSessionTask *) createNsTaskFromObTask: (OBFileTransferTask *) obTask
+-(NSError *) createNSErrorForCode: (OBFTMErrorCode) code
 {
-    NSURLSessionTask *task;
-    OBFileTransferAgent * fileTransferAgent = [OBFileTransferAgentFactory fileTransferAgentInstance:obTask.remoteUrl];
-    
-    if ( obTask.typeUpload ) {
-        
-        NSMutableURLRequest *request = [fileTransferAgent uploadFileRequest:obTask.localFilePath to:obTask.remoteUrl withParams:obTask.params];
-        NSError *error;
-        NSString * tmpFile = [self temporaryFile:obTask.marker];
-//        If the file already exists, we should delete it...
-        if ( [[NSFileManager defaultManager] fileExistsAtPath:tmpFile] ) {
-            [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:&error];
-            if ( error != nil )
-                OB_ERROR(@"Unable to delete existing temporary file %@",tmpFile);
-            else
-                OB_DEBUG(@"Deleted existing tmp file %@",tmpFile);
-            
-            error = nil;
-        }
-        if ( fileTransferAgent.hasEncodedBody )
-            [[request HTTPBody] writeToFile:tmpFile atomically:NO];
-        else
-            [[NSFileManager defaultManager] copyItemAtPath:obTask.localFilePath toPath:tmpFile error:&error];
-        
-        if ( error != nil )
-            OB_ERROR(@"Unable to copy file %@ to temporary file %@",obTask.localFilePath, tmpFile);
-        
-        task = [[self session] uploadTaskWithRequest:request fromFile:[NSURL fileURLWithPath:tmpFile]];
-        
-    } else {
-        NSMutableURLRequest *request = [fileTransferAgent downloadFileRequest:obTask.remoteUrl withParams:obTask.params];
-        task = [[self session] downloadTaskWithRequest:request];
-    }
-    return task;
+    return [NSError errorWithDomain:[OBFTMError errorDomain] code: code userInfo:@{NSLocalizedDescriptionKey:[OBFTMError localizedDescription:code]}];
 }
 
 // Returns the timer value in seconds...

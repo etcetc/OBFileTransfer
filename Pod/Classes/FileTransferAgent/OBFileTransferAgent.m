@@ -27,7 +27,7 @@ NSString * const FormFileFieldNameParamKey = @"_fileFieldName";
 }
 
 // By default the transfer agent is not encoding a body - the file is what it is
--(BOOL) hasEncodedBody
+-(BOOL) hasMultipartBody
 {
     return NO;
 }

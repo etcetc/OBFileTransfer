@@ -26,7 +26,11 @@
 // Reset all the retry history for all pending tasks
 -(void) resetRetries;
 -(void) queueForRetry: (OBFileTransferTask *) obTask;
+
+// Change the task state
 -(void) processing: (OBFileTransferTask *) obTask withNsTask: (NSURLSessionTask *) nsTask;
+-(void) update: (OBFileTransferTask *)obTask  withStatus: (OBFileTransferTaskStatus) status;
+-(void) update: (OBFileTransferTask *)obTask  withLocalFilePath: (NSString *) localFilePath;
 
 -(void) reset;
 -(void) restoreState;

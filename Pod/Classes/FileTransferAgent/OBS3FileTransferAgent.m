@@ -85,7 +85,7 @@
     return @{@"bucketName":[path substringToIndex:firstSlash], @"filePath": [path substringFromIndex:firstSlash+1]};
 }
 
--(BOOL) hasEncodedBody
+-(BOOL) hasMultipartBody
 {
     return NO;
 }

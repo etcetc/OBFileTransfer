@@ -7,11 +7,8 @@
 //
 
 #import "OBFileTransferTask.h"
-#import "OBFileTransferAgent.h"
-#import "OBFileTransferAgentFactory.h"
 
 @interface OBFileTransferTask()
-@property (nonatomic,strong) OBFileTransferAgent * transferAgent;
 @end
 
 NSString * const CreatedOnKey = @"created_on";
@@ -35,26 +32,6 @@ NSString * const StatusKey = @"status";
     return self;
 }
 
-// TODO - REMOVE IF NOT USED
--(OBFileTransferAgent *) transferAgent
-{
-    if ( _transferAgent == nil ) {
-        _transferAgent = [OBFileTransferAgentFactory fileTransferAgentInstance:self.remoteUrl];
-        if ( _transferAgent == nil )
-            [NSException raise:@"Transfer Agent not found" format:@"Could not find transfer agent for protocol in %@",self.remoteUrl];
-    }
-    return _transferAgent;
-}
-
-// TODO - REMOVE IF NOT USED
--(NSMutableURLRequest *) request
-{
-    if ( self.typeUpload )
-        return [self.transferAgent uploadFileRequest:self.localFilePath to:self.remoteUrl withParams:self.params];
-    else
-        return [self.transferAgent downloadFileRequest:self.remoteUrl withParams:self.params];
-}
-
 #pragma mark - Descriptors
 -(NSString *) statusDescription
 {
@@ -64,6 +41,9 @@ NSString * const StatusKey = @"status";
             break;
         case FileTransferPendingRetry:
             return @"Pending";
+            break;
+        case FileTransferDownloadFileReady:
+            return @"Downloaded";
             break;
         default:
             break;

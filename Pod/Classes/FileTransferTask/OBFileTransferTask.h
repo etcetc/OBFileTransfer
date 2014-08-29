@@ -10,6 +10,7 @@
 
 typedef NS_ENUM(NSUInteger, OBFileTransferTaskStatus) {
     FileTransferInProgress,
+    FileTransferDownloadFileReady,
     FileTransferPendingRetry,
 };
 
