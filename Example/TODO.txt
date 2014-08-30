@@ -1,7 +1,7 @@
-- Add configurations for FileTransferManager
+x Add configurations for FileTransferManager
   x number of retries
   x pluggable retry algorithm
-- Downloaded file move can fail w/o client knowing about it right now
+x Downloaded file move can fail w/o client knowing about it right now
 - Make AWS/Server optional
   - make them subspecs
   - If AWS is not present, no need to link in the AWS frameworks

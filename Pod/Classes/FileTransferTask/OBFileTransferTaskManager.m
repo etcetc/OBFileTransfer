@@ -7,7 +7,7 @@
 //
 
 #import "OBFileTransferTaskManager.h"
-#import "OBLogger.h"
+#import <OBLogger/OBLogger.h>
 
 @interface OBFileTransferTaskManager()
 @property (nonatomic,strong) NSString * statePlistFile;

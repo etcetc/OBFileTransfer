@@ -7,7 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "OBLogger.h"
+#import <OBLogger/OBLogger.h>
 #import "OBFileTransferAgentProtocol.h"
 
 // These are special parameters that are used in the construction of the POST request

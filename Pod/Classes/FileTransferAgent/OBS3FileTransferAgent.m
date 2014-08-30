@@ -8,7 +8,7 @@
 
 #import "OBS3FileTransferAgent.h"
 #import <AWSS3/AWSS3.h>
-#import "OBLogger.h"
+#import <OBLogger/OBLogger.h>
 #import "AmazonClientManager.h"
 
 @implementation OBS3FileTransferAgent
