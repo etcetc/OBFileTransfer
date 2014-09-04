@@ -37,6 +37,7 @@
 
 -(NSArray *) currentState;
 -(NSArray *) pendingTasks;
+-(NSArray *) allTasks;
 
 //This is a bit of a hack, put here because it makes it easier to perist.  However, the task manager is not responsible
 //for the retry timer, so it's just storing this value for its client.

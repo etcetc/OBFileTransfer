@@ -10,13 +10,20 @@
 #import "OBFileTransferAgentFactory.h"
 #import "OBFileTransferTask.h"
 
+typedef struct {
+    uint64_t bytesWritten;
+    uint64_t totalBytes;
+    double percentDone;
+} OBTransferProgress;
+
+
 // methods that should be handled by the delegate
 @protocol OBFileTransferDelegate <NSObject>
 
 -(void) fileTransferCompleted: (NSString *)markerId withError: (NSError *)error;
 
 @optional
--(void) fileTransferProgress: (NSString *)markerId percent: (NSUInteger) progress;
+-(void) fileTransferProgress: (NSString *)markerId progress: (OBTransferProgress) progress;
 -(void) fileTransferRetrying: (NSString *)markerId attemptCount: (NSUInteger)attemptCount withError: (NSError *)error;
 -(NSTimeInterval) retryTimeoutValue: (NSInteger)retryAttempt;
 @end
@@ -49,9 +56,13 @@ typedef NS_ENUM(NSUInteger, FileManagerErrorCode) {
 // Main API
 - (void) uploadFile:(NSString *)localFilePath to:(NSString *)remoteUrl withMarker: (NSString *)markerId withParams:(NSDictionary *)params;
 - (void) downloadFile:(NSString *)remoteUrl to:(NSString *)localFilePath withMarker: (NSString *)markerId withParams:(NSDictionary *)params;
+-(void) restartTransfer: (NSString *) marker onComplete:(void(^)(NSDictionary *))completionBlockOrNil;
+-(void) cancelTransfer: (NSString *) marker onComplete:(void(^)())completionBlockOrNil;
+
 -(NSArray *) currentState;
 -(NSString *) pendingSummary;
 -(void) retryPending;
+-(void) restartAllTasks:(void(^)())completionBlockOrNil;
 
 
 @end

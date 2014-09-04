@@ -24,6 +24,10 @@
                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zNO-xe-Dx7" userLabel="Status View">
                     <rect key="frame" x="277" y="16" width="23" height="23"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <gestureRecognizers/>
+                    <connections>
+                        <outletCollection property="gestureRecognizers" destination="rga-Tj-NnY" appends="YES" id="Igs-rB-zWY"/>
+                    </connections>
                 </imageView>
                 <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" fixedFrame="YES" progress="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Cct-en-Wnb">
                     <rect key="frame" x="188" y="27" width="81" height="2"/>
@@ -47,5 +51,10 @@
                 <outlet property="status" destination="zNO-xe-Dx7" id="DRu-DF-Yvg"/>
             </connections>
         </view>
+        <tapGestureRecognizer id="rga-Tj-NnY">
+            <connections>
+                <outlet property="delegate" destination="-1" id="Ca0-Hv-MsH"/>
+            </connections>
+        </tapGestureRecognizer>
     </objects>
 </document>

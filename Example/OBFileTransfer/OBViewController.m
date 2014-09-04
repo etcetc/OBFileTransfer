@@ -76,11 +76,11 @@
     [self.fileTransferManager reset:^{
         [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
             [self displayPending];
-            [self downloadFile:@"test9062.jpg"];
-//            [self uploadFile: @"uploadtest.jpg"];
-            //    [self downloadFile:@"test4128.jpg"];
-            //    [self uploadFile: @"uploadtest.jpg"];
-            //    [self downloadFile:@"test9062_nothere.jpg"];
+            [self uploadFile: @"uploadtest.jpg"];
+            [self downloadFile:@"testdownload1.jpg"];
+            [self downloadFile:@"testdownload2.jpg"];
+            [self uploadFile: @"uploadtest.jpg"];
+            [self downloadFile:@"test9062_nothere.jpg"];
         }];
     }];
 }
@@ -130,15 +130,16 @@
 {
     OB_INFO(@"File transfer with marker %@ pending retry",markerId);
     [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
+        [(OBTransferView *)self.transferViews[markerId] updateProgress:0.0];
         [(OBTransferView *)self.transferViews[markerId] updateStatus:PendingRetry retryCount:attemptCount-1];
         [self displayPending];
     }];
 }
 
--(void) fileTransferProgress: (NSString *)markerId percent: (NSUInteger) progress
+-(void) fileTransferProgress: (NSString *)markerId progress:(OBTransferProgress)progress
 {
     [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
-        [(OBTransferView *)self.transferViews[markerId] updateProgress:progress];
+        [(OBTransferView *)self.transferViews[markerId] updateProgress:progress.percentDone];
     }];
 }
 
@@ -217,12 +218,19 @@
 - (IBAction)reset:(id)sender {
     [self.fileTransferManager reset: ^{
         [self displayPending];
+        [self clearTransferViews];
     }];
 }
 
 - (IBAction)showLog:(id)sender {
     OBLogViewController *logViewer = [OBLogViewController instance];
     [self presentViewController:logViewer animated:YES completion:nil];
+}
+
+- (IBAction)restart:(id)sender {
+    [[self fileTransferManager] restartAllTasks:^{
+        OB_INFO(@"Finished restarting the tasks");
+    }];
 }
 
 @end

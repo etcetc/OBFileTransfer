@@ -12,7 +12,6 @@
 @interface OBFileTransferTaskManager()
 @property (nonatomic,strong) NSString * statePlistFile;
 @property (nonatomic,strong) NSMutableArray *  tasks;
-
 @end
 
 @implementation OBFileTransferTaskManager
@@ -62,7 +61,7 @@
 {
     NSMutableArray *taskStates = [NSMutableArray new];
     for ( OBFileTransferTask * task in [self tasks] ) {
-        [taskStates addObject:task.stateSummary];
+        [taskStates addObject:task.info];
     }
     return taskStates;
 }
@@ -75,6 +74,11 @@
             [pending addObject:task];
     }
     return pending;
+}
+
+-(NSArray *) allTasks
+{
+    return [NSArray arrayWithArray:self.tasks];
 }
 
 -(void) queueForRetry: (OBFileTransferTask *) obTask
@@ -124,8 +128,6 @@
     [self removeTask: [self transferTaskWithMarker:marker]];
 }
 
-// Private
-
 -(NSMutableArray *)tasks
 {
     if ( _tasks == nil )
@@ -154,7 +156,7 @@
 
 -(void) addTask: (OBFileTransferTask *) task
 {
-    [[self tasks] addObject:task];
+    [self.tasks addObject:task];
     [self saveState];
 }
 

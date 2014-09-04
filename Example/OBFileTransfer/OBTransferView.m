@@ -29,7 +29,7 @@
 {
     NSString *retryCountText = @"";
     if ( retryCount > 0 )
-        retryCountText = [NSString stringWithFormat:@"%lu",retryCount];
+        retryCountText = [NSString stringWithFormat:@"%u",retryCount];
     self.retryCounter.text = retryCountText;
     
     switch (status) {

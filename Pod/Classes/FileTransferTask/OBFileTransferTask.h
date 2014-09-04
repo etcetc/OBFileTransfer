@@ -42,7 +42,7 @@ extern NSString * const StatusKey;
 -(NSString *) description;
 -(NSString *) statusDescription;
 -(NSString *) transferDirection;
--(NSDictionary *) stateSummary;
+-(NSDictionary *) info;
 
 // these are for converting to a simple dictionary for serializing, etc.
 -(NSDictionary *) asDictionary;

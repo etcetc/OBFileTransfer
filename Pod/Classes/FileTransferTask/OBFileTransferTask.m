@@ -60,7 +60,7 @@ NSString * const StatusKey = @"status";
     return [NSString stringWithFormat:@"%@ %@ task '%@' id %lu remote:%@ local:%@ [%ld]", [self statusDescription],self.transferDirection, self.marker, (unsigned long)self.nsTaskIdentifier, self.remoteUrl, self.localFilePath,(long)self.attemptCount];
 }
 
--(NSDictionary *) stateSummary
+-(NSDictionary *) info
 {
     return [self asDictionary];
 }

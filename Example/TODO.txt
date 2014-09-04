@@ -14,3 +14,5 @@ x Downloaded file move can fail w/o client knowing about it right now
   - server base url
   - tvm url
 - Incorporate reachability so that we are notified if reachability changes 
+- Have a setup script that creates the download files for server.js to server
+- User other files other than jpg - perhaps have one be a .mp4 and another a pdf
