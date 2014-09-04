@@ -28,6 +28,11 @@
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
+    
+    // These are probably redundant as they may be default settings but they dont hurt.
+    [request2 setAllowsCellularAccess:YES];
+    [request2 setNetworkServiceType:NSURLNetworkServiceTypeBackground];
+
     return request2;
 }
 
@@ -65,6 +70,11 @@
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
+    
+    // These are probably redundant as they may be default settings but they dont hurt.
+    [request2 setAllowsCellularAccess:YES];
+    [request2 setNetworkServiceType:NSURLNetworkServiceTypeBackground];
+
     return request2;
 }
 

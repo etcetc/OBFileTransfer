@@ -1,4 +1,4 @@
-//
+//  Test
 //  OBFileTransferManager.m
 //  How to use this framework
 //
@@ -133,9 +133,17 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
             [NSURLSessionConfiguration backgroundSessionConfiguration:OBFileTransferSessionIdentifier];
         configuration.HTTPMaximumConnectionsPerHost = 10;
         backgroundSession = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
+        
+        // These may be redundant as they may be default settings but they dont hurt.
+        configuration.allowsCellularAccess = YES;
+        configuration.networkServiceType = NSURLNetworkServiceTypeBackground;
+
+        /*
+        I dont believe we need to reset here. And it may create a race condition as this appears to be an ascynchronous task and we are relying on using session immediately after returning from this method. Farhad, please remove these comments and the commented code if you are ok with this.
         [backgroundSession resetWithCompletionHandler:^{
             OB_DEBUG(@"Reset the session cache");
         }];
+        */
         
     });
     return backgroundSession;
@@ -470,7 +478,8 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
             OB_INFO(@"%@ for %@ done", obtask.typeUpload ? @"Upload" : @"Download", marker);
         } else {
 //            There was an error
-            if ( self.maxAttempts != 0 && obtask.attemptCount >= self.maxAttempts ) {
+            if ( [self isPermanentFailureWithStatusCode: response.statusCode] ||
+                 (self.maxAttempts != 0 && obtask.attemptCount >= self.maxAttempts) ) {
                 [self handleCompleted:task obtask:obtask error:error];
             } else {
 //                OK, we're going to retry now. If have not yet set up a timer, let's do so now
@@ -483,6 +492,17 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         OB_WARN(@"Indicated that task completed but state = %d", (int) task.state );
     }
 }
+
+// GARF: Detectin a 404 is probably not right here as I have seen cases of false positives. But we need some way to determine that
+// a particular url will never resolve especially if the client is in the habit of resetting the retry count each time it launches.
+// Otherwise a task may retry forever.
+- (BOOL) isPermanentFailureWithStatusCode:(long)statusCode{
+    if (statusCode == (long)404)
+        return YES;
+    else
+        return NO;
+}
+
 
 
 // ------
@@ -654,7 +674,11 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     if ( self.backgroundTaskIdentifier == UIBackgroundTaskInvalid ) {
         self.backgroundTaskIdentifier = [[UIApplication sharedApplication] beginBackgroundTaskWithExpirationHandler:^{
             OB_INFO(@"Ending background tasks");
-            [[UIApplication sharedApplication] endBackgroundTask: self.backgroundTaskIdentifier];
+            /*
+             The apple docs say you should terminate the background task you requested when they call the expiration handler or before or they will terminate your app. I have found through testing however that if you dont terminate and if the usage of the phone is low by other apps they will let your app run in the background indefinitely even after the backgroundTimeRemaining has long gone to 0. This allows retries to continue for longer than the single background period of a max of 10 minutes in the case of poor coverage. If the line below is not commented out we are only able to retry for the span of a single backgroundTask duration which is 180seconds to start with then 10minutes as your app gains reputation.
+             
+             [[UIApplication sharedApplication] endBackgroundTask: self.backgroundTaskIdentifier];
+             */
             self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
         }];
     }
@@ -664,9 +688,9 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 {
     if (  self.backgroundTaskIdentifier != UIBackgroundTaskInvalid ) {
         if ( [self.transferTaskManager pendingTasks].count == 0 ) {
-            OB_INFO(@"No pending tasks left so ending background tasks");
             [[self transferTaskManager] resetRetryTimerCount];
             [[UIApplication sharedApplication] endBackgroundTask: self.backgroundTaskIdentifier];
+
             self.backgroundTaskIdentifier = UIBackgroundTaskInvalid;
         }
     }

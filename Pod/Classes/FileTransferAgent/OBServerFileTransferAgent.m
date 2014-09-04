@@ -26,6 +26,10 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
     
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:fullSourceFileUrl]];
     [request setHTTPMethod:@"GET"];
+    
+    // These are probably redundant as they may be default settings but they dont hurt.
+    [request setAllowsCellularAccess:YES];
+    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
     return request;
 }
 
@@ -34,6 +38,10 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
 -(NSMutableURLRequest *) uploadFileRequest:(NSString *)filePath to:(NSString *)targetUrl withParams:(NSDictionary *)params
 {
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:targetUrl]];
+    
+    // These are probably redundant as they may be default settings but they dont hurt.
+    [request setAllowsCellularAccess:YES];
+    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
 
     [request setHTTPMethod:@"POST"];
     
