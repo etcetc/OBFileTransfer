@@ -97,7 +97,7 @@
 }
 
 // TODO - replace with KVO at some point
--(void) update: (OBFileTransferTask *)obTask  withStatus: (OBFileTransferTaskStatus) status
+-(void) update: (OBFileTransferTask *)obTask  withStatus: (OBFTMTaskStatus) status
 {
     obTask.status = status;
     [self saveState];

@@ -24,11 +24,13 @@ To Use
   - This should bring in all the neccessary files, dependencies frameworks etc.
   - After you do pod install you should use the workspace file to start xcode rather than the project file.
 
-To Collaborate
---------------
-- Make changes in your local clone of noplanb/FileTransferPlay repo
-  - Change the version in the podspec file
-  - lint to make sure ok
+Release Checklist
+-----------------
+- Test the example app
+- Create a file vn.n.n.txt with the release notes
+- Update podspec with the version
+- Change the version in the podspec file
+- lint to make sure ok
     $ rvm 1.9.3
     $ pod lib lint
 	
@@ -45,3 +47,6 @@ To Collaborate
   $ pod repo push Private-Cocoapods OBFileTransfer.podspec
   
 - Pod install should now pull in the newer version unless you specify and older version in the podfile.
+
+
+

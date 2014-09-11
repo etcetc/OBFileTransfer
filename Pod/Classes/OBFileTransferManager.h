@@ -56,10 +56,11 @@ typedef NS_ENUM(NSUInteger, FileManagerErrorCode) {
 // Main API
 - (void) uploadFile:(NSString *)localFilePath to:(NSString *)remoteUrl withMarker: (NSString *)markerId withParams:(NSDictionary *)params;
 - (void) downloadFile:(NSString *)remoteUrl to:(NSString *)localFilePath withMarker: (NSString *)markerId withParams:(NSDictionary *)params;
--(void) restartTransfer: (NSString *) marker onComplete:(void(^)(NSDictionary *))completionBlockOrNil;
+-(void) restartTransferWithMarker: (NSString *) marker onComplete:(void(^)())completionBlockOrNil;
 -(void) cancelTransfer: (NSString *) marker onComplete:(void(^)())completionBlockOrNil;
 
 -(NSArray *) currentState;
+-(void)currentTransferStateWithCompletionHandler:(void (^)(NSArray *state))handler;
 -(NSString *) pendingSummary;
 -(void) retryPending;
 -(void) restartAllTasks:(void(^)())completionBlockOrNil;

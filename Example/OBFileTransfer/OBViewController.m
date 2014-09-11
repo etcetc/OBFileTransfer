@@ -90,12 +90,12 @@
     [self clearTransferViews];
     for ( NSDictionary * taskInfo in [self.fileTransferManager currentState] ) {
         NSString * filename;
-        if ( [taskInfo[TypeUploadKey] boolValue] ) {
-             filename = taskInfo[ParamsKey][FilenameParamKey];
+        if ( [taskInfo[OBFTMTypeUploadKey] boolValue] ) {
+             filename = taskInfo[OBFTMParamsKey][FilenameParamKey];
         } else
-            filename = [taskInfo[LocalFilePathKey] lastPathComponent];
+            filename = [taskInfo[OBFTMLocalFilePathKey] lastPathComponent];
         
-        [self addTransferView: filename isUpload:[taskInfo[TypeUploadKey] boolValue]];
+        [self addTransferView: filename isUpload:[taskInfo[OBFTMTypeUploadKey] boolValue]];
     }
     [self.fileTransferManager retryPending];
     [self displayPending];

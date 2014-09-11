@@ -29,7 +29,7 @@
 
 // Change the task state
 -(void) processing: (OBFileTransferTask *) obTask withNsTask: (NSURLSessionTask *) nsTask;
--(void) update: (OBFileTransferTask *)obTask  withStatus: (OBFileTransferTaskStatus) status;
+-(void) update: (OBFileTransferTask *)obTask  withStatus: (OBFTMTaskStatus) status;
 -(void) update: (OBFileTransferTask *)obTask  withLocalFilePath: (NSString *) localFilePath;
 
 -(void) reset;
