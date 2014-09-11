@@ -1,0 +1,15 @@
+RELEASE NOTES
+=============
+
+v0.3.1 9/4/2014
+
+- Explicitly set:
+  allowsCellularAccess = YES;
+  networkServiceType = NSURLNetworkServiceTypeBackground;
+  In all requests and in the session configuration. These settings may be the defualt in some cases and therefore may be redundant but they should not hurt.
+
+- Removed the call to [[UIApplication sharedApplication] endBackgroundTask: self.backgroundTaskIdentifier]; The apple docs say you should terminate the background task you requested when they call the expiration handler or before or they will terminate your app. I have found through testing however that if you dont terminate and if the usage of the phone is low by other apps they will let your app run in the background indefinitely even after the backgroundTimeRemaining has long gone to 0. This allows retries to continue for longer than the single background period of a max of 10 minutes in the case of poor coverage. If the line below is not commented out we are only able to retry for the span of a single backgroundTask duration which is 180seconds to start with then 10minutes as your app gains reputation.
+
+- Added a permanent failure detection on error code 404. 
+
+  

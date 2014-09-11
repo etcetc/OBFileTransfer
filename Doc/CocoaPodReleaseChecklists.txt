@@ -1,0 +1,47 @@
+Created a repo for Private-Cocoapods
+------------------------------------
+- This is a repo for podspecs for our own private cocoapods. That way we can use modules that might not pass muster on the 
+  cocoapod master repo.
+- It is on github as noplanb/Private-Cocoapods
+- I pushed the podspecs for both OBFileTransfer and OBLogger to this repo
+
+
+To Use
+------
+- Get cocoapods
+  - Install cocoapod gem see website for instructions works under ruby 1.9.3 I have found problems with older ruby.
+
+- Let cocoapods know about our Private-Cocoapods
+  - That way it will look there as well as in the master repo for a podspec you require.
+  $ pod repo add Private-Cocoapods git@github.com:noplanb/Private-Cocoapods.git
+  
+- Add OBFileTransfer to a project you are working on.
+  - In the top level directory for your project add a file 'Podfile' if you dont have one.
+  - Add the line
+    - pod 'OBFileTransfer'
+  - In the same directory 
+    $ pod install
+  - This should bring in all the neccessary files, dependencies frameworks etc.
+  - After you do pod install you should use the workspace file to start xcode rather than the project file.
+
+To Collaborate
+--------------
+- Make changes in your local clone of noplanb/FileTransferPlay repo
+  - Change the version in the podspec file
+  - lint to make sure ok
+    $ rvm 1.9.3
+    $ pod lib lint
+	
+- Push changes to the noplanb/FileTransferPlay repo and tag it with the same version as in the podspec file
+  $ git add -A && git commit -m "Release 0.0.2."
+  $ git tag '0.0.2'
+  $ git push --tags
+  
+- Lint to make sure repo is corect
+  $ pod spec lint
+  
+- Push the updated podspec to our Private-Cocoapods repo
+  $ rvm 1.9.3
+  $ pod repo push Private-Cocoapods OBFileTransfer.podspec
+  
+- Pod install should now pull in the newer version unless you specify and older version in the podfile.
