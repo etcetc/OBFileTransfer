@@ -29,8 +29,17 @@
 @interface OBFileTransferManager()
 @property (nonatomic) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 @property (nonatomic,strong) OBFileTransferTaskManager * transferTaskManager;
+@property (nonatomic,strong) NSDictionary * configParams;
 @property BOOL timerEngaged;
 @end
+
+
+NSString * const OBFTMMaxRetriesParam = @"MaxRetries";                               // Set maximum number of retries
+NSString * const OBFTMFileStoreConfigParam = @"FileStoreParams";                     // Configurations for the file store
+NSString * const OBFTMDownloadDirectoryParam = @"DownloadDirectoryPath";             // FilePath for the default download directory
+NSString * const OBFTMUploadDirectoryParam = @"UploadDirectoryPath";                 // FilePath for the default upload directory
+NSString * const OBFTMRemoteBaseUrlParam = @"RemoteBaseUrl";                         // Default remote base URL (only valid for private file stores - for S3, Google cloud, etc these are predetermined)
+NSString * const OBFTMOnlyForegroundTransferParam = @"OnlyForeground";               // Boolean to specify if we should liimit to foreground transfers
 
 @implementation OBFileTransferManager
 
@@ -44,7 +53,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // Instantiation
 //--------------
 
-- (instancetype)init{
+-(instancetype)init{
     self = [super init];
     if (self){
         _backgroundTaskIdentifier = UIBackgroundTaskInvalid;
@@ -54,7 +63,6 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 
 // Right now we just return a single instance but in the future I could return multiple instances
 // if I want to have different delegates for each
-// GARF - deprecate - not using a singleton pattern
 +(instancetype) instance
 {
     static OBFileTransferManager * instance = nil;
@@ -94,10 +102,22 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }
 }
 
-// Initialize the instance. Don't want to call it initialize
--(void) initSession
+-(void) configure: (NSDictionary *)configuration
 {
-    [self session];
+    self.configParams = configuration;
+    
+    if ( configuration[OBFTMOnlyForegroundTransferParam] )
+        self.foregroundTransferOnly = [configuration[OBFTMOnlyForegroundTransferParam] boolValue];
+    
+    if ( configuration[OBFTMDownloadDirectoryParam] )
+        self.downloadDirectory = configuration[OBFTMDownloadDirectoryParam];
+    
+    if ( configuration[OBFTMUploadDirectoryParam] )
+        self.uploadDirectory = configuration[OBFTMUploadDirectoryParam];
+    
+    if ( configuration[OBFTMRemoteBaseUrlParam] )
+        self.remoteUrlBase = configuration[OBFTMRemoteBaseUrlParam];
+    
 }
 
 // ---------------
@@ -119,31 +139,26 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // Session methods
 // ---------------
 
-/*
- Singleton with unique identifier so our session is matched when our app is relaunched either in foreground or background. From: apple docuementation :: Note: You must create exactly one session per identifier (specified when you create the configuration object). The behavior of multiple sessions sharing the same identifier is undefined.
- */
+// Initialize the instance. Don't want to call it initialize
+-(void) initSession
+{
+    [self session];
+}
 
-- (NSURLSession *) session{
+-(NSURLSession *) session{
     static NSURLSession *backgroundSession = nil;
     static dispatch_once_t once;
     //    Create a single session and make it be thread-safe
     dispatch_once(&once, ^{
         OB_INFO(@"Creating a %@ URLSession",self.foregroundTransferOnly ? @"foreground" : @"background");
         NSURLSessionConfiguration *configuration = self.foregroundTransferOnly ? [NSURLSessionConfiguration defaultSessionConfiguration] :
-            [NSURLSessionConfiguration backgroundSessionConfiguration:OBFileTransferSessionIdentifier];
+            [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:OBFileTransferSessionIdentifier];
         configuration.HTTPMaximumConnectionsPerHost = 10;
-        backgroundSession = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
-        
-        // These may be redundant as they may be default settings but they dont hurt.
+//        Hardcoded
         configuration.allowsCellularAccess = YES;
         configuration.networkServiceType = NSURLNetworkServiceTypeBackground;
-
-        /*
-        I dont believe we need to reset here. And it may create a race condition as this appears to be an ascynchronous task and we are relying on using session immediately after returning from this method. Farhad, please remove these comments and the commented code if you are ok with this.
-        [backgroundSession resetWithCompletionHandler:^{
-            OB_DEBUG(@"Reset the session cache");
-        }];
-        */
+        
+        backgroundSession = [NSURLSession sessionWithConfiguration:configuration delegate:self delegateQueue:nil];
         
     });
     return backgroundSession;
@@ -207,6 +222,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 }
 
 #pragma mark - Main API
+
 // --------------
 // Main API
 // --------------
@@ -222,6 +238,8 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }];
 }
 
+// This may be used if the app was suspended or terminated, and there were
+// tasks that were pending.
 -(void) restartAllTasks:(void(^)())completionBlockOrNil
 {
     for ( OBFileTransferTask * obTask in self.transferTaskManager.allTasks ) {
@@ -230,7 +248,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 }
 
 // Upload the file at the indicated filePath to the remoteFileUrl (do not include target filename here!).
-// Note that the params dictionary contains both parmetesr interpreted by the local transfer agent and those
+// Note that the params dictionary contains both parmeters interpreted by the local transfer agent and those
 // that are sent along with the file for uploading.  Local params start with the underscore.  Specifically:
 //  FilenameParamKey: contains the uploaded filename. Default: it is pulled from the input filename
 //  ContentTypeParamKey: contains the content type to use.  Default: it is extracted from the filename extension.
@@ -244,13 +262,13 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 }
 
 // Download the file from the remote URL to the provided filePath.
-//
+// If the filePath is relative, we prepend the download directory if specified
 - (void) downloadFile:(NSString *)remoteFileUrl to:(NSString *)filePath withMarker: (NSString *)markerId withParams:(NSDictionary *) params
 {
     [self processTransfer:markerId remote:remoteFileUrl local:filePath params:params upload:NO];
 }
 
-// Cancel a transfer with the indicated marker
+// Cancel a transfer with the indicated marker.  When cancel is completed, call the callback if provided
 -(void) cancelTransfer: (NSString *) marker onComplete:(void(^)())completionBlockOrNil
 {
     OBFileTransferTask *obTask =[[self transferTaskManager] transferTaskWithMarker:marker];
@@ -280,6 +298,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     return [self.transferTaskManager currentState];
 }
 
+// Just a helpful status description, returning how many are pending
 -(NSString *) pendingSummary
 {
     NSInteger uploads=0,downloads=0;
@@ -298,7 +317,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // Retry all pending transfers - to be called externally
 // Warning - this resets all the history on pending tasks and timers.  We want this because
 //  we don't want the client to unwittingly mess up the retry counts and timers by launching the app
-//  to make one more recording.  We can get more sophisticated by looking at reachability later one...
+//  to make one more recording.  We can get more sophisticated by looking at reachability later on...
 -(void) retryPending
 {
     [[self transferTaskManager] resetRetries];
@@ -331,6 +350,8 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }
 }
 
+#pragma mark -- Internal
+
 // Kill the transfer wherever it is and restart it from scratch, but
 // up the attemptCount
 -(void) restartTransferTask: (OBFileTransferTask *)obTask
@@ -343,7 +364,6 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 }
 
 
-#pragma mark -- Internal
 -(void) processTransfer: (NSString *)marker remote: (NSString *)remoteFileUrl local:(NSString *)filePath params:(NSDictionary *)params upload:(BOOL) upload
 {
     NSString *fullRemoteUrl = [self fullRemotePath:remoteFileUrl];
@@ -379,15 +399,20 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 -(NSURLSessionTask *) createNsTaskFromObTask: (OBFileTransferTask *) obTask
 {
     NSURLSessionTask *task;
-    OBFileTransferAgent * fileTransferAgent = [OBFileTransferAgentFactory fileTransferAgentInstance:obTask.remoteUrl];
+    OBFileTransferAgent * fileTransferAgent = [OBFileTransferAgentFactory fileTransferAgentInstance:obTask.remoteUrl withConfig:self.configParams] ;
     
     if ( obTask.typeUpload ) {
         
         NSError *error;
         NSMutableURLRequest *request;
-//        We create the file that needs to be transmitted to a local directory
+//        We create the file that needs to be transmitted in a local directory
         if ( ![self isLocalFile: obTask.localFilePath] ) {
             request = [fileTransferAgent uploadFileRequest:obTask.localFilePath to:obTask.remoteUrl withParams:obTask.params];
+            if ( !self.foregroundTransferOnly )
+                request.networkServiceType = NSURLNetworkServiceTypeBackground;
+            
+//            For now hardcode this!
+            request.allowsCellularAccess = YES;
             NSString * tmpFile = [self temporaryFile:obTask.marker];
             //        If the file already exists, we should delete it...
             if ( [[NSFileManager defaultManager] fileExistsAtPath:tmpFile] ) {
@@ -411,13 +436,15 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
             
             if ( error == nil ) {
                 [self.transferTaskManager update:obTask withLocalFilePath:tmpFile];
+            } else {
+                OB_ERROR(@"Unable to create transfer task because of error: %@", error.localizedDescription );
+                return nil;
             }
             
         } else {
 //            Create the request w/o the file - just an optimization.
             request = [fileTransferAgent uploadFileRequest:nil to:obTask.remoteUrl withParams:obTask.params];
         }
-        
         task = [[self session] uploadTaskWithRequest:request fromFile:[NSURL fileURLWithPath:obTask.localFilePath]];
         
     } else {
@@ -434,11 +461,6 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 }
 
 #pragma mark - Delegates
-
-// --------------
-// Delegate Functions
-// --------------
-
 
 // ------
 // Upload & Download Completion Handling
@@ -493,7 +515,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }
 }
 
-// GARF: Detectin a 404 is probably not right here as I have seen cases of false positives. But we need some way to determine that
+// GARF: Detecting a 404 is probably not right here as I have seen cases of false positives. But we need some way to determine that
 // a particular url will never resolve especially if the client is in the habit of resetting the retry count each time it launches.
 // Otherwise a task may retry forever.
 - (BOOL) isPermanentFailureWithStatusCode:(long)statusCode{
@@ -615,7 +637,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 {
     
     NSLog(@">>>>>Received authentication challenge");
-    completionHandler(NSURLSessionAuthChallengeUseCredential,nil);
+    completionHandler(NSURLSessionAuthChallengeUseCredential,challenge.proposedCredential);
 }
 
 -(void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge completionHandler:(void (^)(NSURLSessionAuthChallengeDisposition, NSURLCredential *))completionHandler
@@ -702,6 +724,8 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // Private
 // -------
 
+// If the downloads are always going to a particular directory, you can just set
+// the downloadDirectory property and from then on pass the filename only
 -(NSString* )normalizeLocalDownloadPath: (NSString * )filePath
 {
     if ( _downloadDirectory == nil || [filePath characterAtIndex:0] == '/')
@@ -710,6 +734,8 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         return [NSString pathWithComponents:@[_downloadDirectory,filePath ]];
 }
 
+// If the uploads are always coming from a particular directory, you can just set
+// the uploadDirectory property and from then on pass the filename only
 -(NSString *) normalizeLocalUploadPath: (NSString *)filePath
 {
     if ( _uploadDirectory == nil || [filePath characterAtIndex:0] == '/' )
@@ -718,6 +744,11 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         return [NSString pathWithComponents:@[_uploadDirectory,filePath ]];
 }
 
+// Add the remote path base to the remote path that is provided if necessary.  If the
+// remote path is already fully formed, that is, includes the protocol, then no need
+// to do anything
+// Note that it is possible for the client to just provide a path and not have set the baseUrl - this will
+// generate an error
 -(NSString *) fullRemotePath: (NSString *)remotePath
 {
     if ( remotePath == nil ) remotePath = @"";
@@ -740,6 +771,13 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
         if ([paths count]) {
             NSString *bundleName =[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
             _tempDirectory = [[paths objectAtIndex:0] stringByAppendingPathComponent:bundleName];
+//            If directory doesn't exist, create it
+            if ( ![[NSFileManager defaultManager] fileExistsAtPath:_tempDirectory] ) {
+                NSError *error;
+                if ( ![[NSFileManager defaultManager] createDirectoryAtPath:_tempDirectory withIntermediateDirectories:NO attributes:nil error:&error]) {
+                    OB_ERROR(@"Unable to create temporary directory %@ with error %@", _tempDirectory, error.localizedDescription);
+                }
+            }
         }
     });
     return _tempDirectory;
@@ -766,7 +804,7 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     return [NSError errorWithDomain:[OBFTMError errorDomain] code: code userInfo:@{NSLocalizedDescriptionKey:[OBFTMError localizedDescription:code]}];
 }
 
-// Returns the timer value in seconds...
+// Returns the timer value (in seconds) given the retry attempt
 -(NSTimeInterval) retryTimeoutValue: (NSUInteger)retryAttempt
 {
 //    return (NSTimeInterval)10.0;

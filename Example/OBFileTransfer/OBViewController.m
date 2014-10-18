@@ -9,15 +9,50 @@
 #import "OBViewController.h"
 #import <OBLogger/OBLogger.h>
 #import "OBTransferView.h"
+#import "OBS3FileTransferAgent.h"
+#import <OBFileTransfer/OBServerFileTransferAgent.h>
+#import <OBFileTransfer/OBGoogleCloudStorageFileTransferAgent.h>
+#import <OBFileTransfer/OBS3FileTransferAgent.h>
+
+typedef enum : NSUInteger {
+    OBServerFileStore = 0,
+    OBS3FileStore = 1,
+    OBGCloudFileSTore = 2
+} OBMyFileStore;
+
 
 @interface OBViewController ()
 @property (nonatomic) NSMutableDictionary * transferViews;
 @property (nonatomic) OBFileTransferManager * fileTransferManager;
-@property (nonatomic) BOOL useS3;
 @property (nonatomic,strong) NSString * baseUrl;
+@property (nonatomic) OBMyFileStore targetFileStore;
+@property (nonatomic,strong) NSDictionary * configParams;
 @end
 
+// IMPORTANT - set these values here or in a file called config.plist
+// Make sure to look @ the config values required by the file transfer agents of interest as well
+#define SERVER_URL @"ENTER VALUE HERE"
+#define SERVER_DOWNLOAD_PATH @"ENTER VALUE HERE/"
+#define SERVER_UPLOAD_PATH @"ENTER VALUE HERE/"
+
+#define AWS_TVM_SERVER_URL @"ENTER VALUE HERE"
+#define AWS_REGION @"ENTER VALUE HERE"
+#define S3_BUCKET_NAME @"ENTER VALUE HERE"
+
+#define GS_PROJECT_ID @"ENTER VALUE HERE"
+#define GS_API_KEY @"ENTER VALUE HERE"
+#define GS_BUCKET_NAME @"ENTER VALUE HERE.onebeat.com"
+
+// Make sure to put a slash at the end of the directory path here
+
+NSString * const OBServerUrlParam = @"ServerUrl";
+NSString * const OBServerUploadPath = @"ServerUploadPath";
+NSString * const OBServerDownloadPath = @"ServerDownloadPath";
+NSString * const OBS3BucketNameParam = @"S3BucketName";
+NSString * const OBGSBucketNameParam = @"GoogleCloudStorageBucketName";
+
 @implementation OBViewController
+
 
 // --------------
 // Lazy instantiations
@@ -33,14 +68,19 @@
 {
     if ( _fileTransferManager == nil ) {
         _fileTransferManager =[OBFileTransferManager instance];
+        [_fileTransferManager configure: self.configParams];
         _fileTransferManager.delegate = self;
-        _fileTransferManager.downloadDirectory = [self documentDirectory];
         
         _fileTransferManager.remoteUrlBase = self.baseUrl;
+
+        //    Set the download directory to be the documents directory if it has not been set
+        if ( self.configParams[OBFTMDownloadDirectoryParam] == nil )
+            _fileTransferManager.downloadDirectory = [self documentDirectory];
+        
+//        Other possible configurations:
+//        Set the maximum number of retries to 2 (else it is infinited by default)
 //        _fileTransferManager.maxAttempts = 2;
         
-//        _fileTransferManager.remoteUrlBase = @"http://localhost:3000/api/upload/";
-//        _fileTransferManager.remoteUrlBase = @"http://localhost:3000/videos/create";
     }
     return _fileTransferManager;
 }
@@ -55,9 +95,25 @@
 
 -(void) setup
 {
-    self.useS3 = YES;
-    self.useS3Switch.on = self.useS3;
-    [self setDefaultURLs];
+    [self setupConfigFromPlist];
+    if ( self.configParams == nil ) {
+        OB_INFO(@"Setting configuration parameters from constants");
+        self.configParams = @{
+                              OBS3TvmServerUrlParam:AWS_TVM_SERVER_URL,
+                              OBS3RegionParam: AWS_REGION,
+                              OBS3BucketNameParam: S3_BUCKET_NAME,
+
+                              OBGoogleCloudStorageProjectId: GS_PROJECT_ID,
+                              OBGoogleCloudStorageApiKey: GS_API_KEY,
+                              OBGSBucketNameParam: GS_BUCKET_NAME,
+                              
+                              OBServerUrlParam: SERVER_URL,
+                              OBServerDownloadPath: SERVER_DOWNLOAD_PATH,
+                              OBServerUploadPath: SERVER_UPLOAD_PATH
+                              };
+
+    }
+    [self setFileStore: OBServerFileStore];
     [self displayPending];
 }
 
@@ -69,18 +125,19 @@
 
 #pragma mark - UI Actions
 
-//NOTE: these are files that we know are there!
+// NOTE: these are files that we know are there!
+//       Downloaded files may have to be seeded to the directories where they are read from
 -(IBAction)start:(id)sender
 {
     [self clearTransferViews];
     [self.fileTransferManager reset:^{
         [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
             [self displayPending];
-            [self uploadFile: @"uploadtest.jpg"];
-            [self downloadFile:@"testdownload1.jpg"];
-            [self downloadFile:@"testdownload2.jpg"];
-            [self uploadFile: @"uploadtest.jpg"];
-            [self downloadFile:@"test9062_nothere.jpg"];
+            [self uploadFile: @"uploadtest_vsmall.jpg"];
+            [self uploadFile: @"uploadtest_medium.jpg"];
+            [self downloadFile:@"downloadtest_large.jpg"];
+            [self downloadFile:@"downloadtest_medium.jpg"];
+//            [self downloadFile:@"test9062_nothere.jpg"];
         }];
     }];
 }
@@ -102,10 +159,22 @@
 }
 
 // Change the file store and appropriate URL
-- (IBAction)changedFileStore:(id)sender {
-    self.useS3 = self.useS3Switch.on;
-    [self setDefaultURLs];
-    self.fileTransferManager.remoteUrlBase = self.baseUrl;
+- (IBAction)changedFileStore:(UISegmentedControl *)sender {
+    switch (sender.selectedSegmentIndex) {
+        case 0:
+            [ self setFileStore:OBServerFileStore];
+            break;
+        case 1:
+            [ self setFileStore:OBS3FileStore];
+            break;
+            
+        case 2:
+            [ self setFileStore:OBGCloudFileSTore];
+            break;
+            
+        default:
+            break;
+    }
 }
 
 - (IBAction)changedFileStoreUrl:(id)sender {
@@ -113,6 +182,15 @@
     self.fileTransferManager.remoteUrlBase = self.baseUrl;
 }
 
+
+-(void) setFileStore: (OBMyFileStore) fileStore
+{
+    self.targetFileStore = fileStore;
+//    A bit of a hack mapping the enum values to the UI segmented index
+    self.fileStoreControl.selectedSegmentIndex = fileStore;
+    [self setDefaultURLs];
+    self.fileTransferManager.remoteUrlBase = self.baseUrl;
+}
 
 #pragma mark - FileTransferDelegate Protocol
 
@@ -157,24 +235,24 @@
 
 -(void) uploadFile: (NSString *)filename
 {
-    NSString * uploadBase =@"";
-    if ( !self.useS3 )
-        uploadBase = @"upload/";
+    NSString * uploadPath =@"";
+    if ( self.targetFileStore == OBServerFileStore )
+        uploadPath = self.configParams[OBServerUploadPath];
     
     NSString * localFilePath = [[NSBundle mainBundle] pathForResource:filename ofType:nil];
     NSString *targetFilename = [NSString stringWithFormat:@"test%d.jpg", arc4random_uniform(10000)];
-    [self.fileTransferManager uploadFile:localFilePath to:uploadBase withMarker:targetFilename withParams:@{FilenameParamKey: targetFilename, @"p1":@"test"}];
+    [self.fileTransferManager uploadFile:localFilePath to:uploadPath withMarker:targetFilename withParams:@{FilenameParamKey: targetFilename}];
     [self addTransferView:targetFilename isUpload:YES];
     
 }
 
 -(void) downloadFile: (NSString *)filename
 {
-    static NSString * base=@"";
-    if ( !self.useS3 )
-        base = @"files/";
+    NSString * downloadPath=@"";
+    if ( self.targetFileStore == OBServerFileStore )
+        downloadPath = self.configParams[OBServerDownloadPath];
     
-    [self.fileTransferManager downloadFile:[base  stringByAppendingString:filename] to:filename withMarker:filename withParams:nil];
+    [self.fileTransferManager downloadFile:[downloadPath stringByAppendingString:filename] to:filename withMarker:filename withParams:nil];
     [self addTransferView:filename isUpload:NO];
 }
 
@@ -196,10 +274,14 @@
 
 -(void) setDefaultURLs
 {
-    if ( self.useS3 )
-        self.baseUrl = @"s3://tbm_videos/";
+    if ( self.targetFileStore == OBS3FileStore )
+        self.baseUrl = [NSString stringWithFormat:@"s3://%@",self.configParams[OBS3BucketNameParam]];
+    else if ( self.targetFileStore == OBGCloudFileSTore )
+        self.baseUrl = [NSString stringWithFormat:@"gs://%@",self.configParams[OBGSBucketNameParam]];
+    else if ( self.targetFileStore == OBServerFileStore )
+        self.baseUrl = self.configParams[OBServerUrlParam];
     else
-        self.baseUrl = @"http://192.168.1.9:3000/";
+        [NSException exceptionWithName:@"OBFileStoreError" reason:@"Unknown file store" userInfo:nil];
     self.baseUrlInput.text = self.baseUrl;
 }
 
@@ -231,6 +313,18 @@
     [[self fileTransferManager] restartAllTasks:^{
         OB_INFO(@"Finished restarting the tasks");
     }];
+}
+
+//
+//
+-(NSDictionary *) setupConfigFromPlist
+{
+    NSString *plistFile = [[NSBundle mainBundle] pathForResource:@"config" ofType:@"plist"];
+    if ( plistFile != nil ) {
+        OB_INFO(@"Reading configuration parameters from config.plist ");
+        self.configParams = [NSDictionary dictionaryWithContentsOfFile:plistFile];
+    }
+    return nil;
 }
 
 @end

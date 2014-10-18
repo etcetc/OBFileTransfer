@@ -1,0 +1,4 @@
+Fix bug in S3 upload causing retries to crash.
+Added option to restart a task or restart all tasks.
+Pass more info back in file transfer progress
+Methods to cancel and restart a task for a particular marker

@@ -11,6 +11,6 @@
 
 @interface OBFileTransferAgentFactory : NSObject
 
-+(OBFileTransferAgent *) fileTransferAgentInstance: (NSString *) remoteUrl;
++(OBFileTransferAgent *)fileTransferAgentInstance:(NSString *)remoteUrl withConfig: (NSDictionary *)configParams;
 
 @end

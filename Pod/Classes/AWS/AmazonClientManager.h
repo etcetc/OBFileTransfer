@@ -14,6 +14,7 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <AWSRuntime/AWSRuntime.h>
 
 #import <AWSS3/AWSS3.h>
 #import "Response.h"
@@ -25,8 +26,8 @@
 @property (nonatomic,strong) NSString * tvmServerUrl;
 
 +(AmazonS3Client *)s3;
-+(bool)hasCredentials;
 +(void)setTvmServerUrl: (NSString *) tvmServerUrl;
++(void)setRegion: (AmazonRegion) region;
 +(Response *)validateCredentials;
 +(void)wipeAllCredentials;
 + (BOOL)wipeCredentialsOnAuthError:(NSError *)error;

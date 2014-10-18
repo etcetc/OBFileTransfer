@@ -19,6 +19,11 @@
 		6003F5B2195388D20070C39A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F591195388D20070C39A /* UIKit.framework */; };
 		6003F5BA195388D20070C39A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6003F5B8195388D20070C39A /* InfoPlist.strings */; };
 		6003F5BC195388D20070C39A /* Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 6003F5BB195388D20070C39A /* Tests.m */; };
+		A569F79F19F071B600219438 /* uploadtest_vsmall.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A569F79719F071B600219438 /* uploadtest_vsmall.jpg */; };
+		A569F7A119F071B600219438 /* uploadtest_large.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A569F79919F071B600219438 /* uploadtest_large.jpg */; };
+		A569F7A319F071B600219438 /* uploadtest_xlarge.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A569F79B19F071B600219438 /* uploadtest_xlarge.jpg */; };
+		A569F7A519F071B600219438 /* uploadtest_medium.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A569F79D19F071B600219438 /* uploadtest_medium.jpg */; };
+		A569F7A719F0723800219438 /* config.plist in Resources */ = {isa = PBXBuildFile; fileRef = A569F7A619F0723800219438 /* config.plist */; };
 		A5769ABD19A56801003EC2EB /* OBAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A5769AB619A56801003EC2EB /* OBAppDelegate.m */; };
 		A5769ABE19A56801003EC2EB /* OBViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A5769AB819A56801003EC2EB /* OBViewController.m */; };
 		A5769ABF19A56801003EC2EB /* OBTransferView.m in Sources */ = {isa = PBXBuildFile; fileRef = A5769ABA19A56801003EC2EB /* OBTransferView.m */; };
@@ -31,7 +36,7 @@
 		A5769B4D19A6D041003EC2EB /* ok.png in Resources */ = {isa = PBXBuildFile; fileRef = A5769B4819A6D041003EC2EB /* ok.png */; };
 		A5769B4E19A6D041003EC2EB /* retry.png in Resources */ = {isa = PBXBuildFile; fileRef = A5769B4919A6D041003EC2EB /* retry.png */; };
 		A5769B4F19A6D041003EC2EB /* upload.png in Resources */ = {isa = PBXBuildFile; fileRef = A5769B4A19A6D041003EC2EB /* upload.png */; };
-		A5769B7819ACF2C9003EC2EB /* uploadtest.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A5769B7719ACF2C9003EC2EB /* uploadtest.jpg */; };
+		A5E531D719C1576A005F71D7 /* notex.txt in Resources */ = {isa = PBXBuildFile; fileRef = A5E531D619C1576A005F71D7 /* notex.txt */; };
 		C99133A495024DB1B9775171 /* libPods-Tests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 774C51525268465D9B54B8EA /* libPods-Tests.a */; };
 /* End PBXBuildFile section */
 
@@ -46,9 +51,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		08E655F2ED750A50E2D53AAA /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
 		2218D84B032B49019D33F54C /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		38A689C6CBA74C92A5548109 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		5196B59748194EEEA7DDAF1D /* OBFileTransfer.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = OBFileTransfer.podspec; path = ../OBFileTransfer.podspec; sourceTree = "<group>"; };
+		553DEB56A92C785FA804A7E3 /* Pods-OBFileTransfer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OBFileTransfer.release.xcconfig"; path = "Pods/Target Support Files/Pods-OBFileTransfer/Pods-OBFileTransfer.release.xcconfig"; sourceTree = "<group>"; };
 		6003F58A195388D20070C39A /* OBFileTransfer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OBFileTransfer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6003F58D195388D20070C39A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		6003F58F195388D20070C39A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -65,7 +72,14 @@
 		6003F5BB195388D20070C39A /* Tests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Tests.m; sourceTree = "<group>"; };
 		606FC2411953D9B200FFA9A0 /* Tests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Tests-Prefix.pch"; sourceTree = "<group>"; };
 		774C51525268465D9B54B8EA /* libPods-Tests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Tests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		8265A88F4852400E8D63D732 /* Pods-Tests.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.xcconfig"; path = "Pods/Pods-Tests.xcconfig"; sourceTree = "<group>"; };
+		A3D27BF83A9086C13C117AD9 /* Pods-Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.debug.xcconfig"; sourceTree = "<group>"; };
+		A569F79419F0507D00219438 /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
+		A569F79519F0507D00219438 /* TemplateIcon2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = TemplateIcon2x.png; sourceTree = "<group>"; };
+		A569F79719F071B600219438 /* uploadtest_vsmall.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = uploadtest_vsmall.jpg; path = "test images/uploadtest_vsmall.jpg"; sourceTree = "<group>"; };
+		A569F79919F071B600219438 /* uploadtest_large.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = uploadtest_large.jpg; path = "test images/uploadtest_large.jpg"; sourceTree = "<group>"; };
+		A569F79B19F071B600219438 /* uploadtest_xlarge.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = uploadtest_xlarge.jpg; path = "test images/uploadtest_xlarge.jpg"; sourceTree = "<group>"; };
+		A569F79D19F071B600219438 /* uploadtest_medium.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = uploadtest_medium.jpg; path = "test images/uploadtest_medium.jpg"; sourceTree = "<group>"; };
+		A569F7A619F0723800219438 /* config.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = config.plist; sourceTree = "<group>"; };
 		A5769AB619A56801003EC2EB /* OBAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OBAppDelegate.m; sourceTree = "<group>"; };
 		A5769AB719A56801003EC2EB /* OBAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OBAppDelegate.h; sourceTree = "<group>"; };
 		A5769AB819A56801003EC2EB /* OBViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OBViewController.m; sourceTree = "<group>"; };
@@ -82,9 +96,11 @@
 		A5769B4919A6D041003EC2EB /* retry.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = retry.png; sourceTree = "<group>"; };
 		A5769B4A19A6D041003EC2EB /* upload.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = upload.png; sourceTree = "<group>"; };
 		A5769B5319A7ABA3003EC2EB /* TODO.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO.txt; sourceTree = "<group>"; };
-		A5769B7719ACF2C9003EC2EB /* uploadtest.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = uploadtest.jpg; sourceTree = "<group>"; };
+		A59F03C319F1FA19001FC178 /* ChangeLog */ = {isa = PBXFileReference; lastKnownFileType = text; name = ChangeLog; path = ../ChangeLog; sourceTree = "<group>"; };
+		A59F03C419F1FA19001FC178 /* TemplateIcon2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = TemplateIcon2x.png; path = ../TemplateIcon2x.png; sourceTree = "<group>"; };
+		A5E531D619C1576A005F71D7 /* notex.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = notex.txt; path = doc/notex.txt; sourceTree = "<group>"; };
+		E447D0FFE072D521292B3232 /* Pods-OBFileTransfer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OBFileTransfer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-OBFileTransfer/Pods-OBFileTransfer.debug.xcconfig"; sourceTree = "<group>"; };
 		EA9DE7495DE34112B0623C3E /* libPods-OBFileTransfer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-OBFileTransfer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F5E63724FA9E4B08B432CDB8 /* Pods-OBFileTransfer.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OBFileTransfer.xcconfig"; path = "Pods/Pods-OBFileTransfer.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,13 +134,18 @@
 		6003F581195388D10070C39A = {
 			isa = PBXGroup;
 			children = (
+				A59F03C319F1FA19001FC178 /* ChangeLog */,
+				A59F03C419F1FA19001FC178 /* TemplateIcon2x.png */,
+				A569F7A619F0723800219438 /* config.plist */,
+				A569F79419F0507D00219438 /* README.txt */,
+				A569F79519F0507D00219438 /* TemplateIcon2x.png */,
+				A5E531D519C1574E005F71D7 /* doc */,
 				60FF7A9C1954A5C5007DD14C /* Podspec Metadata */,
 				6003F593195388D20070C39A /* OBFileTransferTest */,
 				6003F5B5195388D20070C39A /* Tests */,
 				6003F58C195388D20070C39A /* Frameworks */,
 				6003F58B195388D20070C39A /* Products */,
-				F5E63724FA9E4B08B432CDB8 /* Pods-OBFileTransfer.xcconfig */,
-				8265A88F4852400E8D63D732 /* Pods-Tests.xcconfig */,
+				8A6BA273C8D7C9B4ACA1D9A6 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -208,9 +229,19 @@
 				5196B59748194EEEA7DDAF1D /* OBFileTransfer.podspec */,
 				2218D84B032B49019D33F54C /* README.md */,
 				38A689C6CBA74C92A5548109 /* LICENSE */,
-				A5769B5319A7ABA3003EC2EB /* TODO.txt */,
 			);
 			name = "Podspec Metadata";
+			sourceTree = "<group>";
+		};
+		8A6BA273C8D7C9B4ACA1D9A6 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				E447D0FFE072D521292B3232 /* Pods-OBFileTransfer.debug.xcconfig */,
+				553DEB56A92C785FA804A7E3 /* Pods-OBFileTransfer.release.xcconfig */,
+				A3D27BF83A9086C13C117AD9 /* Pods-Tests.debug.xcconfig */,
+				08E655F2ED750A50E2D53AAA /* Pods-Tests.release.xcconfig */,
+			);
+			name = Pods;
 			sourceTree = "<group>";
 		};
 		A5769B4519A6D041003EC2EB /* images */ = {
@@ -228,9 +259,21 @@
 		A5769B7619ACF01C003EC2EB /* Sample Files */ = {
 			isa = PBXGroup;
 			children = (
-				A5769B7719ACF2C9003EC2EB /* uploadtest.jpg */,
+				A569F79719F071B600219438 /* uploadtest_vsmall.jpg */,
+				A569F79919F071B600219438 /* uploadtest_large.jpg */,
+				A569F79B19F071B600219438 /* uploadtest_xlarge.jpg */,
+				A569F79D19F071B600219438 /* uploadtest_medium.jpg */,
 			);
 			name = "Sample Files";
+			sourceTree = "<group>";
+		};
+		A5E531D519C1574E005F71D7 /* doc */ = {
+			isa = PBXGroup;
+			children = (
+				A5769B5319A7ABA3003EC2EB /* TODO.txt */,
+				A5E531D619C1576A005F71D7 /* notex.txt */,
+			);
+			name = doc;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -316,14 +359,19 @@
 			files = (
 				A5769B4D19A6D041003EC2EB /* ok.png in Resources */,
 				A5769B4C19A6D041003EC2EB /* nok.png in Resources */,
-				A5769B7819ACF2C9003EC2EB /* uploadtest.jpg in Resources */,
 				A5769B4E19A6D041003EC2EB /* retry.png in Resources */,
 				A5769AC019A56801003EC2EB /* OBTransferView.xib in Resources */,
 				A5769B4B19A6D041003EC2EB /* download.png in Resources */,
+				A569F7A519F071B600219438 /* uploadtest_medium.jpg in Resources */,
 				6003F5A9195388D20070C39A /* Images.xcassets in Resources */,
 				A5769B4F19A6D041003EC2EB /* upload.png in Resources */,
 				6003F598195388D20070C39A /* InfoPlist.strings in Resources */,
+				A5E531D719C1576A005F71D7 /* notex.txt in Resources */,
+				A569F7A319F071B600219438 /* uploadtest_xlarge.jpg in Resources */,
 				A5769B4419A6CF82003EC2EB /* Main.storyboard in Resources */,
+				A569F7A119F071B600219438 /* uploadtest_large.jpg in Resources */,
+				A569F79F19F071B600219438 /* uploadtest_vsmall.jpg in Resources */,
+				A569F7A719F0723800219438 /* config.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -350,7 +398,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Pods-OBFileTransfer-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-OBFileTransfer/Pods-OBFileTransfer-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		47DC00717AAF4F819D0ACBC5 /* Check Pods Manifest.lock */ = {
@@ -380,7 +428,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Pods-Tests-resources.sh\"\n";
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Tests/Pods-Tests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		F99D2C4B0D4A4D958898024E /* Check Pods Manifest.lock */ = {
@@ -524,7 +572,7 @@
 		};
 		6003F5C0195388D20070C39A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F5E63724FA9E4B08B432CDB8 /* Pods-OBFileTransfer.xcconfig */;
+			baseConfigurationReference = E447D0FFE072D521292B3232 /* Pods-OBFileTransfer.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -543,7 +591,7 @@
 		};
 		6003F5C1195388D20070C39A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F5E63724FA9E4B08B432CDB8 /* Pods-OBFileTransfer.xcconfig */;
+			baseConfigurationReference = 553DEB56A92C785FA804A7E3 /* Pods-OBFileTransfer.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
@@ -562,7 +610,7 @@
 		};
 		6003F5C3195388D20070C39A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8265A88F4852400E8D63D732 /* Pods-Tests.xcconfig */;
+			baseConfigurationReference = A3D27BF83A9086C13C117AD9 /* Pods-Tests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/OBFileTransfer.app/OBFileTransfer";
 				FRAMEWORK_SEARCH_PATHS = (
@@ -585,7 +633,7 @@
 		};
 		6003F5C4195388D20070C39A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 8265A88F4852400E8D63D732 /* Pods-Tests.xcconfig */;
+			baseConfigurationReference = 08E655F2ED750A50E2D53AAA /* Pods-Tests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/OBFileTransfer.app/OBFileTransfer";
 				FRAMEWORK_SEARCH_PATHS = (

@@ -1,0 +1,7 @@
+0.4.0 10/16/2014
+- Added google cloud support
+- Refactored to read parameters from config.plist
+- Updated S3 interface to work with ios 8
+- Updated documentation
+- Changed FileTransferAgent architecture to enable dynamic additions of new file transfer agents
+

@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = "OBFileTransfer"
-  s.version          = "0.3.1"
+  s.version          = "0.4.0"
   s.summary          = "A simple library to transfer files in the background."
   s.description      = <<-DESC
                        The client (your application) can use OBFileTransfer to upload and downlaod files to a server or S3 repository (S3 repository assumes AWS Token Vending Machine for authentication).  It can perform these uploads and downloads in the background so when the user switches apps it will still continue the transfers.  It is designed to be "best-effort", such that if there is an error, it will keep retrying some set number of times (or indefinitely as specified).
@@ -33,8 +33,7 @@ Pod::Spec.new do |s|
 #  s.ios.resource_bundle = { "OBFileTransfer-ios" => ["Pod/Assets/*"] }
   s.public_header_files = 'Pod/Classes/**/*.h'
   s.vendored_frameworks = 'AWSRuntime.framework', 'AWSS3.framework'
-  # s.frameworks = 'UIKit', 'MapKit'
-  #  We will want to enable this once we have the OBLogger spec in a private repo
-  s.dependency 'OBLogger'
+
+s.dependency 'OBLogger'
 
 end

@@ -12,7 +12,11 @@
 
 NSString * const FilenameParamKey = @"_filename";
 NSString * const ContentTypeParamKey = @"_contentType";
-NSString * const FormFileFieldNameParamKey = @"_fileFieldName";
+
+-(instancetype) initWithConfig:(NSDictionary *)configParams
+{
+    return [self init];
+}
 
 -(NSMutableURLRequest *) downloadFileRequest:(NSString *)sourcefileUrl withParams:(NSDictionary *)params
 {
@@ -37,9 +41,13 @@ NSString * const FormFileFieldNameParamKey = @"_fileFieldName";
 {
     NSMutableDictionary * p = [NSMutableDictionary dictionaryWithDictionary:params];
     [p removeObjectForKey:FilenameParamKey];
-    [p removeObjectForKey:FormFileFieldNameParamKey];
     [p removeObjectForKey:ContentTypeParamKey];
     return p;
+}
+
+-(NSString *)filenameFromFilepath: (NSString *)filePath
+{
+    return [[filePath componentsSeparatedByString:@"/"] lastObject];
 }
 
 -(NSString *)mimeTypeFromFilename: (NSString *)filename

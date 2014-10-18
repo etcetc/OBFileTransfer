@@ -13,10 +13,10 @@
 
 @property (nonatomic,weak) IBOutlet UIImageView * image;
 @property (nonatomic,weak) IBOutlet UIView * transferViewArea;
-@property (weak, nonatomic) IBOutlet UISwitch *useS3Switch;
 @property (weak, nonatomic) IBOutlet UITextField *baseUrlInput;
 @property (weak, nonatomic) IBOutlet UIButton *resetButton;
 @property (weak, nonatomic) IBOutlet UILabel *pendingInfo;
+@property (weak, nonatomic) IBOutlet UISegmentedControl *fileStoreControl;
 
 - (IBAction)changedFileStore:(id)sender;
 - (IBAction)changedFileStoreUrl:(id)sender;

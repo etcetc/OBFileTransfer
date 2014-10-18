@@ -16,18 +16,16 @@
 //  FormFileFieldNameParamKey: contains the field name containing the file. Default: file.
 extern NSString * const FilenameParamKey;
 extern NSString * const ContentTypeParamKey;
-extern NSString * const FormFileFieldNameParamKey;
-
-typedef NS_ENUM(NSUInteger, OBFileStore) {
-    OBStandardServer,
-    OBS3
-};
-
 
 @interface OBFileTransferAgent : NSObject <OBFileTransferAgentProtocol>
-@property (nonatomic) OBFileStore fileStore;
+
+@property (nonatomic,strong) NSDictionary *configParams;
+
+// Default initializer
+-(instancetype) initWithConfig:(NSDictionary *)configParams;
 
 // Derive the mime type from the filename type extension
+-(NSString *)filenameFromFilepath: (NSString *)filePath;
 -(NSString *)mimeTypeFromFilename: (NSString *)filename;
 -(NSDictionary *)removeSpecialParams: (NSDictionary *)params;
 -(NSString *)serializeParams:(NSDictionary *)params;

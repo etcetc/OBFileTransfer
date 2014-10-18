@@ -9,6 +9,10 @@
 #import <Foundation/Foundation.h>
 #import "OBFileTransferAgent.h"
 
+extern NSString * const OBS3StorageProtocol ;
+extern NSString * const OBS3TvmServerUrlParam ;
+extern NSString * const OBS3RegionParam;
+
 @interface OBS3FileTransferAgent : OBFileTransferAgent
 
 @end

@@ -10,7 +10,10 @@
 
 @implementation OBServerFileTransferAgent
 
-NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
+NSString * const OBHttpFormBoundary = @"the!-boundary!-marker!";
+
+// Parameter to use to determine the field name for the multipart file metadata
+NSString * const OBFormFileFieldNameParamKey = @"_fileFieldName";
 
 // Create a GET request to a standard URL.  Note that any parameters may be passed in the params
 // structure or else be in the sourceFileUrl
@@ -27,9 +30,6 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:fullSourceFileUrl]];
     [request setHTTPMethod:@"GET"];
     
-    // These are probably redundant as they may be default settings but they dont hurt.
-    [request setAllowsCellularAccess:YES];
-    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
     return request;
 }
 
@@ -39,10 +39,6 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
 {
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:targetUrl]];
     
-    // These are probably redundant as they may be default settings but they dont hurt.
-    [request setAllowsCellularAccess:YES];
-    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
-
     [request setHTTPMethod:@"POST"];
     
     [request setValue:@"Keep-Alive" forHTTPHeaderField:@"Connection"];
@@ -53,7 +49,7 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
     NSMutableData *body = [[NSMutableData alloc] init];
 
     if ( filePath != nil ) {
-        NSString *formFileInputName = params[FormFileFieldNameParamKey] == nil ? @"file" : params[FormFileFieldNameParamKey];
+        NSString *formFileInputName = params[OBFormFileFieldNameParamKey] == nil ? @"file" : params[OBFormFileFieldNameParamKey];
         NSString *filename = params[FilenameParamKey] == nil ? [[filePath pathComponents] lastObject] : params[FilenameParamKey];
         NSString *contentType =params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
 
@@ -91,6 +87,13 @@ NSString * const OBHttpFormBoundary = @"--------sdfllkjkjkli98ijj";
     [request setHTTPBody:body];
     
     return request;
+}
+
+-(NSDictionary *)removeSpecialParams: (NSDictionary *)params
+{
+    NSMutableDictionary * p = [NSMutableDictionary dictionaryWithDictionary: [super removeSpecialParams:params]];
+    [p removeObjectForKey:OBFormFileFieldNameParamKey];
+    return p;
 }
 
 -(BOOL) hasMultipartBody

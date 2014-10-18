@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>s3</key>
+	<string>OBS3FileTransferAgent</string>
+	<key>http</key>
+	<string>OBServerFileTransferAgent</string>
+	<key>https</key>
+	<string>OBServerFileTransferAgent</string>
+	<key>gs</key>
+	<string>OBGoogleCloudStorageFileTransferAgent</string>
+</dict>
+</plist>

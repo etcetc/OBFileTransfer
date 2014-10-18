@@ -15,16 +15,13 @@
 
 #import "AmazonClientManager.h"
 
-#import <AWSRuntime/AWSRuntime.h>
 
 #import "AmazonKeyChainWrapper.h"
 #import "AmazonTVMClient.h"
 
 static AmazonS3Client       *s3  = nil;
 static AmazonTVMClient      * _tvm = nil;
-
-// HACK GARF - remove this!!
-#define TVM_SERVER_URL @"http://default-environment-kkh4pgjjij.elasticbeanstalk.com"
+static AmazonRegion _awsRegion;
 
 NSString * const kAmazonTokenHeader = @"x-amz-security-token";
 
@@ -42,21 +39,19 @@ NSString * const kAmazonTokenHeader = @"x-amz-security-token";
 +(void)setTvmServerUrl: (NSString *) tvmServerUrl;
 {
 //    TODO - will want to use SSL later
-    if ( ![_tvm.endpoint isEqualToString:tvmServerUrl] ) {
+    if ( _tvm == nil || ![_tvm.endpoint isEqualToString:tvmServerUrl] ) {
         _tvm = [[AmazonTVMClient alloc] initWithEndpoint:tvmServerUrl useSSL:NO];
     }
 }
 
 +(AmazonTVMClient *) tvm
 {
-    if ( _tvm == nil )
-        [self setTvmServerUrl:TVM_SERVER_URL];
     return _tvm;
 }
 
-+(bool)hasCredentials
++(void) setRegion: (AmazonRegion) region
 {
-    return YES;
+    _awsRegion = region;
 }
 
 +(Response *)validateCredentials

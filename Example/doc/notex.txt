@@ -1,0 +1,8 @@
+To support S3 in a clearer manner.
+
+Provide to FTM S3 configuration parameters
+- indexed by protocol
+- S3 File Transfer agent specifies config parameters
+  - use_token_vendor
+  - token_vendor_url
+- the FTM has to then pass these to the appropriate agent, dynamically

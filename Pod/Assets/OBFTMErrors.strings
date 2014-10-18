@@ -1,0 +1,12 @@
+/* 
+  Errors.strings
+  Pods
+
+  Created by Farhad Farzaneh on 8/28/14.
+
+*/
+
+"OBFTMUnknownError" = "Unknown Error";
+"OBFTMTmpFileCreateError" = "Error creating the temporary upload file",
+"OBFTMTmpFileDeleteError" = "Error deleting previous temporary upload file"
+
