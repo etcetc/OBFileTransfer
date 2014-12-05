@@ -75,6 +75,7 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     dispatch_once(&obftmOnceToken, ^{
         instance = [[self alloc] init];
         instance.maxAttempts = INFINITE_ATTEMPTS;
+        [instance initSession];
 //        And set up the transfer task manager here - was previously using lazy instantiation but set it up cuz we know we'll need it.
         [instance setupTransferTaskManager];
         OB_DEBUG(@"Created OBFileTransferManager instance");
@@ -148,7 +149,8 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 // Session methods
 // ---------------
 
-// Initialize the instance. Don't want to call it initialize
+// Initialize the instance - since session had a lazy instantiator we want to call this if we want
+// to do this deterministically
 -(void) initSession
 {
     [self session];
@@ -156,9 +158,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 
 -(NSURLSession *) session{
     static NSURLSession *backgroundSession = nil;
-    static dispatch_once_t once;
+    static dispatch_once_t sessionCreationOnceToken;
     //    Create a single session and make it be thread-safe
-    dispatch_once(&once, ^{
+    dispatch_once(&sessionCreationOnceToken, ^{
         OB_INFO(@"Creating a %@ URLSession",self.foregroundTransferOnly ? @"foreground" : @"background");
         NSURLSessionConfiguration *configuration = self.foregroundTransferOnly ? [NSURLSessionConfiguration defaultSessionConfiguration] :
             [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:OBFileTransferSessionIdentifier];

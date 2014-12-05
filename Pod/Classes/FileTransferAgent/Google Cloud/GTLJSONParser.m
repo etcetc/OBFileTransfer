@@ -64,8 +64,8 @@
                         humanReadable:humanReadable
                                 error:error];
   if (data) {
-    NSString *jsonStr = [[[NSString alloc] initWithData:data
-                                               encoding:NSUTF8StringEncoding] autorelease];
+    NSString *jsonStr = [[NSString alloc] initWithData:data
+                                               encoding:NSUTF8StringEncoding];
     return jsonStr;
   }
   return nil;
@@ -98,7 +98,7 @@
 
     if (error) *error = nil;
 
-    GTLSBJSON *writer = [[[jsonWriteClass alloc] init] autorelease];
+    GTLSBJSON *writer = [[jsonWriteClass alloc] init];
     [writer setHumanReadable:humanReadable];
     NSString *jsonStr = [writer stringWithObject:obj
                                            error:error];
@@ -138,10 +138,10 @@
 
     if (error) *error = nil;
 
-    GTLSBJSON *parser = [[[jsonParseClass alloc] init] autorelease];
+    GTLSBJSON *parser = [[jsonParseClass alloc] init];
 
-    NSString *jsonrep = [[[NSString alloc] initWithData:jsonData
-                                               encoding:NSUTF8StringEncoding] autorelease];
+    NSString *jsonrep = [[NSString alloc] initWithData:jsonData
+                                               encoding:NSUTF8StringEncoding];
     id obj = [parser objectWithString:jsonrep
                                 error:error];
     return obj;

@@ -11,9 +11,13 @@
 
 @interface OBFileTransferTaskManager()
 @property (nonatomic,strong) NSMutableArray *  tasks;
+@property (strong) NSLock * arrayLock;
 @end
 
 @implementation OBFileTransferTaskManager
+static dispatch_queue_t myQueue;
+
+@synthesize arrayLock = _arrayLock;
 
 +(instancetype) instance
 {
@@ -21,17 +25,28 @@
     static OBFileTransferTaskManager * instance = nil;
     dispatch_once(&obfttmOnceToken, ^{
         instance = [[self alloc] init];
-        [instance restoreState];
+        [instance initialize];
+        myQueue = dispatch_queue_create("OBFileTransferTaskManagerQueue", NULL);
     });
     return instance;
+}
+
+// Call this to initialize the state variables
+-(void) initialize
+{
+    _arrayLock  =[NSLock new];
+    _tasks = [[NSMutableArray alloc] init];
+    [self restoreState];
 }
 
 // Stop tracking all tasks and reset to a virgin state
 -(void) reset
 {
     OB_DEBUG(@"Resetting OB Tasks state");
+    [_arrayLock lock];
     [self.tasks removeAllObjects];
     self.retryTimerCount = 0;
+    [_arrayLock unlock];
     [self saveState];
 }
 
@@ -98,7 +113,7 @@
         [tasksDesc appendString:[NSString stringWithFormat:@"%@%@-%@,", task.typeUpload ? @"U" : @"D", statusStr, task.marker]];
     }
     if ([tasksDesc hasSuffix:@","])
-        tasksDesc = [tasksDesc substringToIndex:(tasksDesc.length - 1)];
+        tasksDesc = (NSMutableString *)[tasksDesc substringToIndex:(tasksDesc.length - 1)];
     return tasksDesc;
 }
 
@@ -175,13 +190,6 @@
     [self removeTask: [self transferTaskWithMarker:marker]];
 }
 
--(NSMutableArray *)tasks
-{
-    if ( _tasks == nil )
-        _tasks = [[NSMutableArray alloc] init];
-    return _tasks;
-}
-
 
 -(OBFileTransferTask *) transferTaskForNSTask:(NSURLSessionTask *)nsTask
 {
@@ -205,51 +213,60 @@
 
 -(void) addTask: (OBFileTransferTask *) task
 {
+    [self.arrayLock lock];
     [self.tasks addObject:task];
+    [self.arrayLock unlock];
     [self saveState];
 }
 
 -(void) removeTask: (OBFileTransferTask *) task
 {
     if ( task != nil ) {
+        [self.arrayLock lock];
         [[self tasks] removeObject:task];
+        [self.arrayLock unlock];
         [self saveState];
     }
 }
 
-// Save and restore the current state of the tasks
+// Save and restore the current state of the tasks in a thread-safe manner by using a serial queue
 -(void) saveState
 {
-//    OB_DEBUG(@"Starting to save OBTasks state");
-    NSMutableArray *tasksToSave = [[NSMutableArray alloc] init];
-    for ( OBFileTransferTask *task in self.tasks ) {
-        [tasksToSave addObject:[task asDictionary]];
-    }
-    NSDictionary *stateDictionary = @{@"tasks": tasksToSave, @"retryTimerCount": [NSNumber numberWithInteger:self.retryTimerCount]};
-    BOOL wroteToFile = [stateDictionary writeToFile:self.statePlistFile atomically:YES];
-    if ( !wroteToFile ) {
-        OB_ERROR(@"Could not save tasks to %@",self.statePlistFile);
-    } else {
-        OB_DEBUG(@"Saved %lu tracked tasks: %@",(unsigned long)tasksToSave.count, [self tasksSummary] );
-    }
+    dispatch_async(myQueue, ^{
+        //    OB_DEBUG(@"Starting to save OBTasks state");
+        NSMutableArray *tasksToSave = [[NSMutableArray alloc] init];
+        for ( OBFileTransferTask *task in self.tasks ) {
+            [tasksToSave addObject:[task asDictionary]];
+        }
+        NSDictionary *stateDictionary = @{@"tasks": tasksToSave, @"retryTimerCount": [NSNumber numberWithInteger:self.retryTimerCount]};
+        BOOL wroteToFile = [stateDictionary writeToFile:self.statePlistFile atomically:YES];
+        if ( !wroteToFile ) {
+            OB_ERROR(@"Could not save tasks to %@",self.statePlistFile);
+        } else {
+            OB_DEBUG(@"Saved %lu tracked tasks: %@",(unsigned long)tasksToSave.count, [self tasksSummary] );
+        }
+    });
 }
 
+// This doesn't stricltly have to be synchronized because we only read it once when we initialize the object
 -(void) restoreState
 {
-//    OB_DEBUG(@"Starting to restore OBTasks state");
-    NSDictionary *stateDictionary;
-    [self.tasks removeAllObjects];
-    if ( ![[NSFileManager defaultManager] fileExistsAtPath:self.statePlistFile] ) {
-        OB_DEBUG(@"OBTasks file does not exist so saving current state");
-        [self saveState];
-    } else {
-        stateDictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:self.statePlistFile];
+    @synchronized(self) {
+    //    OB_DEBUG(@"Starting to restore OBTasks state");
+        NSDictionary *stateDictionary;
+        [self.tasks removeAllObjects];
+        if ( ![[NSFileManager defaultManager] fileExistsAtPath:self.statePlistFile] ) {
+            OB_DEBUG(@"OBTasks file does not exist so saving current state");
+            [self saveState];
+        } else {
+            stateDictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:self.statePlistFile];
+        }
+        self.retryTimerCount = [stateDictionary[@"retryTimerCount"] integerValue];
+        for ( NSDictionary *taskInfo in stateDictionary[@"tasks"] ) {
+            [self.tasks addObject:[[OBFileTransferTask alloc] initFromDictionary:taskInfo]];
+        }
+        OB_DEBUG(@"Restored %lu tracked tasks: %@",(unsigned long)self.tasks.count, [self tasksSummary] );
     }
-    self.retryTimerCount = [stateDictionary[@"retryTimerCount"] integerValue];
-    for ( NSDictionary *taskInfo in stateDictionary[@"tasks"] ) {
-        [self.tasks addObject:[[OBFileTransferTask alloc] initFromDictionary:taskInfo]];
-    }
-    OB_DEBUG(@"Restored %lu tracked tasks: %@",(unsigned long)self.tasks.count, [self tasksSummary] );
 }
 
 -(NSString *) statePlistFile

@@ -59,7 +59,6 @@ extern NSString * const OBFTMOnlyForegroundTransferParam;                    // 
 // Pass along configuration parameters
 -(void) configure: (NSDictionary *)configuration;
 
--(void) initSession;
 -(NSURLSession *) session;
 
 // Reset the state of all the tasks

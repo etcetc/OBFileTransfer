@@ -55,7 +55,6 @@
 - (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)())completionHandler{
     OB_INFO(@"handleEventsForBackgroundURLSession: for sessionId=%@",identifier);
     OBFileTransferManager *ftm = [OBFileTransferManager instance];
-    [ftm initSession];
     ftm.backgroundSessionCompletionHandler = completionHandler;
 }
 
