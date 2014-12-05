@@ -10,15 +10,26 @@
 #import <OBLogger/OBLogger.h>
 
 @interface OBFileTransferTaskManager()
-@property (nonatomic,strong) NSString * statePlistFile;
 @property (nonatomic,strong) NSMutableArray *  tasks;
 @end
 
 @implementation OBFileTransferTaskManager
 
++(instancetype) instance
+{
+    static dispatch_once_t obfttmOnceToken;
+    static OBFileTransferTaskManager * instance = nil;
+    dispatch_once(&obfttmOnceToken, ^{
+        instance = [[self alloc] init];
+        [instance restoreState];
+    });
+    return instance;
+}
+
 // Stop tracking all tasks and reset to a virgin state
 -(void) reset
 {
+    OB_DEBUG(@"Resetting OB Tasks state");
     [self.tasks removeAllObjects];
     self.retryTimerCount = 0;
     [self saveState];
@@ -64,6 +75,41 @@
         [taskStates addObject:task.info];
     }
     return taskStates;
+}
+
+-(NSString *) tasksSummary
+{
+    NSMutableString *tasksDesc = [NSMutableString stringWithString:@""];
+    for ( OBFileTransferTask * task in [self tasks] ) {
+        NSString * statusStr;
+        switch (task.status) {
+            case FileTransferInProgress:
+                statusStr = @"P";
+                break;
+            case FileTransferPendingRetry:
+                statusStr = @"W";
+                break;
+            case FileTransferDownloadFileReady:
+                statusStr = @"D";
+                break;
+            default:
+                break;
+        }
+        [tasksDesc appendString:[NSString stringWithFormat:@"%@%@-%@,", task.typeUpload ? @"U" : @"D", statusStr, task.marker]];
+    }
+    if ([tasksDesc hasSuffix:@","])
+        tasksDesc = [tasksDesc substringToIndex:(tasksDesc.length - 1)];
+    return tasksDesc;
+}
+
+-(NSArray *)processingTasks
+{
+    NSMutableArray *processing = [NSMutableArray new];
+    for ( OBFileTransferTask * task in [self tasks] ) {
+        if ( task.status == FileTransferInProgress )
+            [processing addObject:task];
+    }
+    return processing;
 }
 
 -(NSArray *)pendingTasks
@@ -125,6 +171,7 @@
 // Removes a task with the indicated marker value
 -(void) removeTaskWithMarker: (NSString *)marker
 {
+//    OB_DEBUG(@"Looking to remove task for marker %@ if it exists",marker);
     [self removeTask: [self transferTaskWithMarker:marker]];
 }
 
@@ -142,6 +189,7 @@
         if ( task.nsTaskIdentifier == nsTask.taskIdentifier )
             return task;
     }
+    OB_DEBUG(@"Unable to find OB Task for NS Task with identifier %lu",(unsigned long)nsTask.taskIdentifier);
     return nil;
 }
 
@@ -151,6 +199,7 @@
         if ( [task.marker isEqualToString:marker] )
             return task;
     }
+//    OB_DEBUG(@"Unable to find OB Task for marker %@",marker);
     return nil;
 }
 
@@ -171,6 +220,7 @@
 // Save and restore the current state of the tasks
 -(void) saveState
 {
+//    OB_DEBUG(@"Starting to save OBTasks state");
     NSMutableArray *tasksToSave = [[NSMutableArray alloc] init];
     for ( OBFileTransferTask *task in self.tasks ) {
         [tasksToSave addObject:[task asDictionary]];
@@ -178,15 +228,19 @@
     NSDictionary *stateDictionary = @{@"tasks": tasksToSave, @"retryTimerCount": [NSNumber numberWithInteger:self.retryTimerCount]};
     BOOL wroteToFile = [stateDictionary writeToFile:self.statePlistFile atomically:YES];
     if ( !wroteToFile ) {
-        OB_ERROR(@"Could not write save tasks to %@",self.statePlistFile);
+        OB_ERROR(@"Could not save tasks to %@",self.statePlistFile);
+    } else {
+        OB_DEBUG(@"Saved %lu tracked tasks: %@",(unsigned long)tasksToSave.count, [self tasksSummary] );
     }
 }
 
 -(void) restoreState
 {
+//    OB_DEBUG(@"Starting to restore OBTasks state");
     NSDictionary *stateDictionary;
     [self.tasks removeAllObjects];
     if ( ![[NSFileManager defaultManager] fileExistsAtPath:self.statePlistFile] ) {
+        OB_DEBUG(@"OBTasks file does not exist so saving current state");
         [self saveState];
     } else {
         stateDictionary = [[NSMutableDictionary alloc] initWithContentsOfFile:self.statePlistFile];
@@ -195,18 +249,20 @@
     for ( NSDictionary *taskInfo in stateDictionary[@"tasks"] ) {
         [self.tasks addObject:[[OBFileTransferTask alloc] initFromDictionary:taskInfo]];
     }
+    OB_DEBUG(@"Restored %lu tracked tasks: %@",(unsigned long)self.tasks.count, [self tasksSummary] );
 }
 
 -(NSString *) statePlistFile
 {
     static dispatch_once_t onceToken;
+    static NSString * StatePlistFile;
     dispatch_once(&onceToken, ^{
         NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory ,NSUserDomainMask, YES);
         NSString *documentsDirectory = [paths objectAtIndex:0];
-        _statePlistFile = [documentsDirectory stringByAppendingPathComponent:@"FileTransferTaskManager.plist"];
-        NSLog(@"FileTransferTaskManager Plist File = %@", _statePlistFile);
+        StatePlistFile = [documentsDirectory stringByAppendingPathComponent:@"FileTransferTaskManager.plist"];
+        NSLog(@"FileTransferTaskManager Plist File = %@", StatePlistFile);
     });
-    return _statePlistFile;
+    return StatePlistFile;
 }
 
 -(void)  updateRetryTimerCount

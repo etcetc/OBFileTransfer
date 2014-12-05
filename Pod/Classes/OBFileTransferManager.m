@@ -27,6 +27,12 @@
 // *********************************
 
 @interface OBFileTransferManager()
+{
+@private
+
+    OBFileTransferTaskManager * _transferTaskManager;
+}
+
 @property (nonatomic) UIBackgroundTaskIdentifier backgroundTaskIdentifier;
 @property (nonatomic,strong) OBFileTransferTaskManager * transferTaskManager;
 @property (nonatomic,strong) NSDictionary * configParams;
@@ -45,7 +51,6 @@ NSString * const OBFTMOnlyForegroundTransferParam = @"OnlyForeground";          
 
 static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTransferSession";
 
-OBFileTransferTaskManager * _transferTaskManager = nil;
 
 #define INFINITE_ATTEMPTS 0
 
@@ -66,10 +71,13 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 +(instancetype) instance
 {
     static OBFileTransferManager * instance = nil;
-    static dispatch_once_t onceToken;
-    dispatch_once(&onceToken, ^{
+    static dispatch_once_t obftmOnceToken;
+    dispatch_once(&obftmOnceToken, ^{
         instance = [[self alloc] init];
         instance.maxAttempts = INFINITE_ATTEMPTS;
+//        And set up the transfer task manager here - was previously using lazy instantiation but set it up cuz we know we'll need it.
+        [instance setupTransferTaskManager];
+        OB_DEBUG(@"Created OBFileTransferManager instance");
     });
     return instance;
 }
@@ -124,13 +132,14 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // Lazy Instantiators for key helper objects
 // ---------------
 
-// The transfer task manager keeps track of ongoing transfers
+
+// This is a lazy instantiator for the transfer task manager that keeps track of ongoing transfers
 -(OBFileTransferTaskManager *)transferTaskManager
 {
     if ( _transferTaskManager == nil )
         @synchronized(self) {
-            _transferTaskManager = [[OBFileTransferTaskManager alloc] init];
-            [_transferTaskManager restoreState];
+            if ( _transferTaskManager == nil )
+                _transferTaskManager = [OBFileTransferTaskManager instance];
         }
     return _transferTaskManager;
 }
@@ -218,6 +227,22 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
             }
         }
         if ( completionBlockOrNil ) completionBlockOrNil();
+    }];
+}
+
+-(void) checkInternalTaskConsistency
+{
+    [[self session] getTasksWithCompletionHandler: ^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
+        NSArray *runningTasks = [uploadTasks arrayByAddingObjectsFromArray:downloadTasks];
+        NSArray *markedAsPorcessingTasks = [self.transferTaskManager processingTasks];
+        if ( runningTasks.count != markedAsPorcessingTasks.count )
+            OB_ERROR(@"There are %lu tasks processing but %lu marked as processing", runningTasks.count, markedAsPorcessingTasks.count);
+        for ( NSURLSessionTask * task in runningTasks ) {
+            OBFileTransferTask *obTask = [self.transferTaskManager transferTaskForNSTask:task];
+            if ( obTask == nil ) {
+                OB_WARN(@"Unable to find OBTask for NS Task with identifier %lu",task.taskIdentifier);
+            }
+        }
     }];
 }
 
@@ -515,17 +540,6 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }
 }
 
-// GARF: Detecting a 404 is probably not right here as I have seen cases of false positives. But we need some way to determine that
-// a particular url will never resolve especially if the client is in the habit of resetting the retry count each time it launches.
-// Otherwise a task may retry forever.
-- (BOOL) isPermanentFailureWithStatusCode:(long)statusCode{
-    if (statusCode == (long)404)
-        return YES;
-    else
-        return NO;
-}
-
-
 
 // ------
 // Upload
@@ -686,6 +700,16 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
     }
 }
 
+// GARF: Detecting a 404 is probably not right here as I have seen cases of false positives. But we need some way to determine that
+// a particular url will never resolve especially if the client is in the habit of resetting the retry count each time it launches.
+// Otherwise a task may retry forever.
+- (BOOL) isPermanentFailureWithStatusCode:(long)statusCode{
+    if (statusCode == (long)404)
+        return YES;
+    else
+        return NO;
+}
+
 
 // -------
 //  Background (only used for timer events, which only occurs if we have pending tasks)
@@ -723,6 +747,13 @@ OBFileTransferTaskManager * _transferTaskManager = nil;
 // -------
 // Private
 // -------
+
+// This sets up the transfer task manager so it's ready and not created lazily
+-(void) setupTransferTaskManager
+{
+    [self transferTaskManager];
+}
+
 
 // If the downloads are always going to a particular directory, you can just set
 // the downloadDirectory property and from then on pass the filename only

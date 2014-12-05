@@ -183,7 +183,7 @@ NSString * const OBGSFTAHttpFormBoundary = @"some_unlikely_string";
 -(NSString *) createDownloadUrl: (NSString *)url
 {
     NSDictionary *urlComponents = [self urlToComponents:url];
-    return [NSString stringWithFormat:@"%@/storage/v1/b/%@/o/%@?key=%@",kBaseCloudUrl, urlComponents[@"bucketName"],urlComponents[@"filePath"], self.apiKey];
+    return [NSString stringWithFormat:@"%@/download/storage/v1/b/%@/o/%@?key=%@&alt=media",kBaseCloudUrl, urlComponents[@"bucketName"],urlComponents[@"filePath"], self.apiKey];
 }
 
 -(void) validateSetup
