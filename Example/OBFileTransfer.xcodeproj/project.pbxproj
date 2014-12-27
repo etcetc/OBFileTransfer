@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1913C7A853FB4162B79566CA /* libPods-OBFileTransfer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EA9DE7495DE34112B0623C3E /* libPods-OBFileTransfer.a */; };
+		229A7E5E1A4F6903004431E4 /* config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 229A7E5D1A4F6903004431E4 /* config.plist */; };
 		6003F58E195388D20070C39A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F58D195388D20070C39A /* Foundation.framework */; };
 		6003F590195388D20070C39A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F58F195388D20070C39A /* CoreGraphics.framework */; };
 		6003F592195388D20070C39A /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6003F591195388D20070C39A /* UIKit.framework */; };
@@ -23,7 +24,6 @@
 		A569F7A119F071B600219438 /* uploadtest_large.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A569F79919F071B600219438 /* uploadtest_large.jpg */; };
 		A569F7A319F071B600219438 /* uploadtest_xlarge.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A569F79B19F071B600219438 /* uploadtest_xlarge.jpg */; };
 		A569F7A519F071B600219438 /* uploadtest_medium.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A569F79D19F071B600219438 /* uploadtest_medium.jpg */; };
-		A569F7A719F0723800219438 /* config.plist in Resources */ = {isa = PBXBuildFile; fileRef = A569F7A619F0723800219438 /* config.plist */; };
 		A5769ABD19A56801003EC2EB /* OBAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A5769AB619A56801003EC2EB /* OBAppDelegate.m */; };
 		A5769ABE19A56801003EC2EB /* OBViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A5769AB819A56801003EC2EB /* OBViewController.m */; };
 		A5769ABF19A56801003EC2EB /* OBTransferView.m in Sources */ = {isa = PBXBuildFile; fileRef = A5769ABA19A56801003EC2EB /* OBTransferView.m */; };
@@ -53,6 +53,7 @@
 /* Begin PBXFileReference section */
 		08E655F2ED750A50E2D53AAA /* Pods-Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-Tests/Pods-Tests.release.xcconfig"; sourceTree = "<group>"; };
 		2218D84B032B49019D33F54C /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		229A7E5D1A4F6903004431E4 /* config.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = config.plist; sourceTree = "<group>"; };
 		38A689C6CBA74C92A5548109 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		5196B59748194EEEA7DDAF1D /* OBFileTransfer.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = OBFileTransfer.podspec; path = ../OBFileTransfer.podspec; sourceTree = "<group>"; };
 		553DEB56A92C785FA804A7E3 /* Pods-OBFileTransfer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OBFileTransfer.release.xcconfig"; path = "Pods/Target Support Files/Pods-OBFileTransfer/Pods-OBFileTransfer.release.xcconfig"; sourceTree = "<group>"; };
@@ -79,7 +80,6 @@
 		A569F79919F071B600219438 /* uploadtest_large.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = uploadtest_large.jpg; path = "test images/uploadtest_large.jpg"; sourceTree = "<group>"; };
 		A569F79B19F071B600219438 /* uploadtest_xlarge.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = uploadtest_xlarge.jpg; path = "test images/uploadtest_xlarge.jpg"; sourceTree = "<group>"; };
 		A569F79D19F071B600219438 /* uploadtest_medium.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = uploadtest_medium.jpg; path = "test images/uploadtest_medium.jpg"; sourceTree = "<group>"; };
-		A569F7A619F0723800219438 /* config.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = config.plist; sourceTree = "<group>"; };
 		A5769AB619A56801003EC2EB /* OBAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OBAppDelegate.m; sourceTree = "<group>"; };
 		A5769AB719A56801003EC2EB /* OBAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OBAppDelegate.h; sourceTree = "<group>"; };
 		A5769AB819A56801003EC2EB /* OBViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OBViewController.m; sourceTree = "<group>"; };
@@ -134,9 +134,9 @@
 		6003F581195388D10070C39A = {
 			isa = PBXGroup;
 			children = (
+				229A7E5D1A4F6903004431E4 /* config.plist */,
 				A59F03C319F1FA19001FC178 /* ChangeLog */,
 				A59F03C419F1FA19001FC178 /* TemplateIcon2x.png */,
-				A569F7A619F0723800219438 /* config.plist */,
 				A569F79419F0507D00219438 /* README.txt */,
 				A569F79519F0507D00219438 /* TemplateIcon2x.png */,
 				A5E531D519C1574E005F71D7 /* doc */,
@@ -371,7 +371,7 @@
 				A5769B4419A6CF82003EC2EB /* Main.storyboard in Resources */,
 				A569F7A119F071B600219438 /* uploadtest_large.jpg in Resources */,
 				A569F79F19F071B600219438 /* uploadtest_vsmall.jpg in Resources */,
-				A569F7A719F0723800219438 /* config.plist in Resources */,
+				229A7E5E1A4F6903004431E4 /* config.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -55,7 +55,8 @@ NSString * const OBGSFTAHttpFormBoundary = @"some_unlikely_string";
     
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:fullSourceFileUrl]];
     [request setHTTPMethod:@"GET"];
-    
+    [request setAllowsCellularAccess:YES];
+    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
     return request;
 }
 
@@ -80,7 +81,8 @@ NSString * const OBGSFTAHttpFormBoundary = @"some_unlikely_string";
     [request setValue:@"no-cache" forHTTPHeaderField:@"Cache-Control"];
     [request setValue:@"926360415491" forHTTPHeaderField:@"x-goog-project-id"];
 
-    
+    [request setAllowsCellularAccess:YES];
+    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
     NSMutableData *body = [[NSMutableData alloc] init];
 
 #if SIMPLE_UPLOAD

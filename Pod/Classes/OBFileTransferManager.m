@@ -163,7 +163,7 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     dispatch_once(&sessionCreationOnceToken, ^{
         OB_INFO(@"Creating a %@ URLSession",self.foregroundTransferOnly ? @"foreground" : @"background");
         NSURLSessionConfiguration *configuration = self.foregroundTransferOnly ? [NSURLSessionConfiguration defaultSessionConfiguration] :
-            [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:OBFileTransferSessionIdentifier];
+            [NSURLSessionConfiguration backgroundSessionConfiguration:OBFileTransferSessionIdentifier];
         configuration.HTTPMaximumConnectionsPerHost = 10;
 //        Hardcoded
         configuration.allowsCellularAccess = YES;

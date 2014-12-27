@@ -29,7 +29,8 @@ NSString * const OBFormFileFieldNameParamKey = @"_fileFieldName";
     
     NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:fullSourceFileUrl]];
     [request setHTTPMethod:@"GET"];
-    
+    [request setAllowsCellularAccess:YES];
+    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
     return request;
 }
 
@@ -85,7 +86,8 @@ NSString * const OBFormFileFieldNameParamKey = @"_fileFieldName";
     [body appendData:[postString dataUsingEncoding:NSUTF8StringEncoding]];
     
     [request setHTTPBody:body];
-    
+    [request setAllowsCellularAccess:YES];
+    [request setNetworkServiceType:NSURLNetworkServiceTypeBackground];
     return request;
 }
 

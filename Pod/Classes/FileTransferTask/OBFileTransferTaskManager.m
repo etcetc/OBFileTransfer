@@ -25,8 +25,8 @@ static dispatch_queue_t myQueue;
     static OBFileTransferTaskManager * instance = nil;
     dispatch_once(&obfttmOnceToken, ^{
         instance = [[self alloc] init];
-        [instance initialize];
         myQueue = dispatch_queue_create("OBFileTransferTaskManagerQueue", NULL);
+        [instance initialize];
     });
     return instance;
 }
