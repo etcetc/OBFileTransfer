@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>GoogleCloudStorageProjectId</key>
+	<string>926360415491</string>
+	<key>GoogleCloudStorageApiKey</key>
+	<string>AIzaSyCQTUxqLHCwjpdXMVCX8x2Z8fNXoGHnEc0</string>
+	<key>S3RegionParam</key>
+	<string>us_east_1</string>
+	<key>S3TvmServerUrlParam</key>
+	<string>http://default-environment-kkh4pgjjij.elasticbeanstalk.com</string>
+	<key>S3BucketName</key>
+	<string>tbm_videos</string>
+	<key>GoogleCloudStorageBucketName</key>
+	<string>bucket1.onebeat.com</string>
+	<key>ServerUrl</key>
+	<string>http://10.0.1.6:3000</string>
+	<key>ServerUploadPath</key>
+	<string>upload/</string>
+	<key>ServerDownloadPath</key>
+	<string>download/</string>
+</dict>
+</plist>
