@@ -20,6 +20,10 @@ NSString * const LocalFilePathKey = @"localFilePath";
 NSString * const ParamsKey = @"params";
 NSString * const AttemptsKey = @"attempts";
 NSString * const StatusKey = @"status";
+NSString * const CountOfBytesExpectedToReceiveKey = @"CountOfBytesExpectedToReceiveKey";
+NSString * const CountOfBytesReceivedKey  = @"CountOfBytesReceivedKey";
+NSString * const CountOfBytesExpectedToSendKey  = @"CountOfBytesExpectedToSendKey";
+NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
 
 @implementation OBFileTransferTask
 

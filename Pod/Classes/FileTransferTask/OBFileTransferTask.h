@@ -23,6 +23,11 @@ extern NSString * const LocalFilePathKey;
 extern NSString * const ParamsKey;
 extern NSString * const AttemptsKey;
 extern NSString * const StatusKey;
+extern NSString * const CountOfBytesExpectedToReceiveKey;
+extern NSString * const CountOfBytesReceivedKey;
+extern NSString * const CountOfBytesExpectedToSendKey;
+extern NSString * const CountOfBytesSentKey;
+
 
 @interface OBFileTransferTask : NSObject <NSCoding>
 

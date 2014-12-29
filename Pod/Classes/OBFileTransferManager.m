@@ -238,11 +238,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         NSArray *runningTasks = [uploadTasks arrayByAddingObjectsFromArray:downloadTasks];
         NSArray *markedAsPorcessingTasks = [self.transferTaskManager processingTasks];
         if ( runningTasks.count != markedAsPorcessingTasks.count )
-            OB_ERROR(@"There are %lu tasks processing but %lu marked as processing", runningTasks.count, markedAsPorcessingTasks.count);
+            OB_ERROR(@"There are %lu tasks processing but %lu marked as processing", (unsigned long)runningTasks.count, markedAsPorcessingTasks.count);
         for ( NSURLSessionTask * task in runningTasks ) {
             OBFileTransferTask *obTask = [self.transferTaskManager transferTaskForNSTask:task];
             if ( obTask == nil ) {
-                OB_WARN(@"Unable to find OBTask for NS Task with identifier %lu",task.taskIdentifier);
+                OB_WARN(@"Unable to find OBTask for NS Task with identifier %lu",(unsigned long)task.taskIdentifier);
             }
         }
     }];
@@ -323,6 +323,24 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 -(NSArray *) currentState
 {
     return [self.transferTaskManager currentState];
+}
+
+-(void)currentTransferStateWithCompletionHandler:(void (^)(NSArray *ftState))handler{
+    NSMutableArray *state = [[NSMutableArray alloc] init];
+    [[self session] getTasksWithCompletionHandler: ^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
+        for ( NSURLSessionTask * task in [uploadTasks arrayByAddingObjectsFromArray:downloadTasks] ) {
+            OBFileTransferTask * obTask = [[self transferTaskManager] transferTaskForNSTask:task];
+            NSDictionary *info = [obTask info];
+            NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
+            [dict addEntriesFromDictionary:info];
+            dict[CountOfBytesExpectedToReceiveKey] = [NSNumber numberWithLongLong: [task countOfBytesExpectedToReceive]];
+            dict[CountOfBytesReceivedKey] = [NSNumber numberWithLongLong:[task countOfBytesReceived]];
+            dict[CountOfBytesExpectedToSendKey] = [NSNumber numberWithLongLong: [task countOfBytesExpectedToSend]];
+            dict[CountOfBytesSentKey] = [NSNumber numberWithLongLong: [task countOfBytesSent]];
+            [state addObject:dict];
+        }
+        handler(state);
+    }];
 }
 
 // Just a helpful status description, returning how many are pending
