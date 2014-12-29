@@ -48,8 +48,6 @@ NSString * const OBS3RegionParam = @"S3RegionParam";
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
-    [request2 setAllowsCellularAccess:YES];
-    [request2 setNetworkServiceType:NSURLNetworkServiceTypeBackground];
     return request2;
 }
 
@@ -92,8 +90,7 @@ NSString * const OBS3RegionParam = @"S3RegionParam";
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
-    [request2 setAllowsCellularAccess:YES];
-    [request2 setNetworkServiceType:NSURLNetworkServiceTypeBackground];
+
     return request2;
 }
 

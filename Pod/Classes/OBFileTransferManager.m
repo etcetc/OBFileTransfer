@@ -450,16 +450,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         
         NSError *error;
         NSMutableURLRequest *request;
-//        We create the file that needs to be transmitted in a local directory
+        // We create the file that needs to be transmitted in a local directory
         if ( ![self isLocalFile: obTask.localFilePath] ) {
             request = [fileTransferAgent uploadFileRequest:obTask.localFilePath to:obTask.remoteUrl withParams:obTask.params];
-            if ( !self.foregroundTransferOnly )
-                request.networkServiceType = NSURLNetworkServiceTypeBackground;
-            
-//            For now hardcode this!
-            request.allowsCellularAccess = YES;
             NSString * tmpFile = [self temporaryFile:obTask.marker];
-            //        If the file already exists, we should delete it...
+            // If the file already exists, we should delete it...
             if ( [[NSFileManager defaultManager] fileExistsAtPath:tmpFile] ) {
                 [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:&error];
                 if ( error != nil )
@@ -487,13 +482,22 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             }
             
         } else {
-//            Create the request w/o the file - just an optimization.
+        // Create the request w/o the file - just an optimization.
             request = [fileTransferAgent uploadFileRequest:nil to:obTask.remoteUrl withParams:obTask.params];
         }
+        if ( !self.foregroundTransferOnly )
+            request.networkServiceType = NSURLNetworkServiceTypeBackground;
+        // For now hardcode this!
+        request.allowsCellularAccess = YES;
         task = [[self session] uploadTaskWithRequest:request fromFile:[NSURL fileURLWithPath:obTask.localFilePath]];
         
     } else {
         NSMutableURLRequest *request = [fileTransferAgent downloadFileRequest:obTask.remoteUrl withParams:obTask.params];
+        if ( !self.foregroundTransferOnly )
+            request.networkServiceType = NSURLNetworkServiceTypeBackground;
+        // For now hardcode this!
+        request.allowsCellularAccess = YES;
+
         task = [[self session] downloadTaskWithRequest:request];
     }
     return task;
