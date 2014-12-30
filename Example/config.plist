@@ -8,10 +8,18 @@
 	<string>AIzaSyCQTUxqLHCwjpdXMVCX8x2Z8fNXoGHnEc0</string>
 	<key>S3RegionParam</key>
 	<string>us_east_1</string>
+	<key>S3RegionParamSani</key>
+	<string>us_west_1</string>
 	<key>S3TvmServerUrlParam</key>
 	<string>http://default-environment-kkh4pgjjij.elasticbeanstalk.com</string>
+	<key>S3NoTvmAccessKeyParam</key>
+	<string>AKIAJV553QLVAKL75IAA</string>
+	<key>S3NoTvmSecretKeyParam</key>
+	<string>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</string>
 	<key>S3BucketName</key>
 	<string>tbm_videos</string>
+	<key>S3BucketNameSani</key>
+	<string>com.zazo.videos</string>
 	<key>GoogleCloudStorageBucketName</key>
 	<string>bucket1.onebeat.com</string>
 	<key>ServerUrl</key>

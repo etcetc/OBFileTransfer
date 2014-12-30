@@ -40,6 +40,17 @@ NSString *kKeychainKeyIdentifier;
     kKeychainKeyIdentifier = [NSString stringWithFormat:@"%@.KEY", bundleID] ;
 }
 
++(NSString *)keychainAccessKeyIdentifier{
+    return kKeychainAccessKeyIdentifier;
+}
++(NSString *)keychainSecretKeyIdentifier{
+    return kKeychainSecretKeyIdentifier;
+}
++(NSString *)keychainSecrutiyTokenIdentifier{
+    return kKeychainSecrutiyTokenIdentifier;
+}
+
+
 +(bool)areCredentialsExpired
 {
 //    AMZLogDebug(@"areCredentialsExpired");

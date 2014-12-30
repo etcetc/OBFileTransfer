@@ -15,8 +15,7 @@
 
 #import <AWSRuntime/AWSRuntime.h>
 
-@interface AmazonKeyChainWrapper:NSObject {
-}
+@interface AmazonKeyChainWrapper:NSObject {}
 
 +(bool)areCredentialsExpired;
 +(AmazonCredentials *)getCredentialsFromKeyChain;
@@ -36,6 +35,10 @@
 +(OSStatus)wipeKeyChain;
 +(OSStatus)wipeCredentialsFromKeyChain;
 +(NSMutableDictionary *)createKeychainDictionaryForKey:(NSString *)key;
+
++(NSString *)keychainAccessKeyIdentifier;
++(NSString *)keychainSecretKeyIdentifier;
++(NSString *)keychainSecrutiyTokenIdentifier;
 
 
 @end

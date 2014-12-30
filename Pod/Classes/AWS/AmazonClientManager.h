@@ -27,6 +27,7 @@
 
 +(AmazonS3Client *)s3;
 +(void)setTvmServerUrl: (NSString *) tvmServerUrl;
++(void)setNoTvmCredentials:(AmazonCredentials *)credentials;
 +(void)setRegion: (AmazonRegion) region;
 +(Response *)validateCredentials;
 +(void)wipeAllCredentials;

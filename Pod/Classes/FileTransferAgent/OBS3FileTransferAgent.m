@@ -14,6 +14,9 @@
 NSString * const OBS3StorageProtocol = @"s3";
 NSString * const OBS3TvmServerUrlParam = @"S3TvmServerUrlParam";
 NSString * const OBS3RegionParam = @"S3RegionParam";
+NSString * const OBS3NoTvmAccessKeyParam = @"S3NoTvmAccessKeyParam";
+NSString * const OBS3NoTvmSecretKeyParam = @"S3NoTvmSecretKeyParam";
+NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
 
 @interface OBS3FileTransferAgent ()
 @property (nonatomic,strong) NSString * tvmUrl;
@@ -29,9 +32,19 @@ NSString * const OBS3RegionParam = @"S3RegionParam";
         self.awsRegion = [self amazonRegion:configParams[OBS3RegionParam]];
         [self validateSetup];
         [AmazonClientManager setTvmServerUrl:self.tvmUrl];
+        [AmazonClientManager setNoTvmCredentials:[self noTvmCredentials:configParams]];
         [AmazonClientManager setRegion: self.awsRegion];
     }
     return self;
+}
+
+- (AmazonCredentials *)noTvmCredentials:(NSDictionary *)configParams{
+    if (configParams[OBS3NoTvmAccessKeyParam] == nil || configParams[OBS3NoTvmSecretKeyParam] == nil)
+        return nil;
+    
+    return [[AmazonCredentials alloc] initWithAccessKey:configParams[OBS3NoTvmAccessKeyParam]
+                                          withSecretKey:configParams[OBS3NoTvmSecretKeyParam]
+                                      withSecurityToken:configParams[OBS3NoTvmSecurityTokenParam]];
 }
 
 // Create an S3 download request
@@ -44,7 +57,7 @@ NSString * const OBS3RegionParam = @"S3RegionParam";
     [getRequest setSecurityToken:[AmazonClientManager securityToken]];
     NSMutableURLRequest *request = [[AmazonClientManager s3] signS3Request:getRequest];
     
-    //    We have to copy over because request is actually a sublass of NSMutableREquest and can cause problems
+    // We have to copy over because request is actually a sublass of NSMutableREquest and can cause problems
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
@@ -80,13 +93,14 @@ NSString * const OBS3RegionParam = @"S3RegionParam";
     [putRequest setSecurityToken:[AmazonClientManager securityToken]];
     
     putRequest.contentType = params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
+    
+    // NOTE - as of ios 8 it seems that I have to supply the content length or else it remains at 0 and nothing is sent
     NSError *error;
-//    NOTE - as of ios 8 it seems that I have to supply the content length or else it remains at 0 and nothing is sent
     putRequest.contentLength = [[[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:&error] fileSize];
     
     NSMutableURLRequest *request = [[AmazonClientManager s3] signS3Request:putRequest];
     
-    //    We have to copy over because request is actually a sublass of NSMutableREquest and can cause problems
+    // We have to copy over because request is actually a sublass of NSMutableREquest and can cause problems
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
@@ -106,7 +120,7 @@ NSString * const OBS3RegionParam = @"S3RegionParam";
     } else {
         path = url;
     }
-    //    This'll throw up if there are no /s in the input
+    // This'll throw up if there are no /s in the input
     NSInteger firstSlash = [path rangeOfString:@"/"].location;
     return @{@"bucketName":[path substringToIndex:firstSlash], @"filePath": [path substringFromIndex:firstSlash+1]};
 }
@@ -119,7 +133,6 @@ NSString * const OBS3RegionParam = @"S3RegionParam";
 
 -(void) validateSetup
 {
-    NSAssert(self.tvmUrl != nil, @"The TVM Url must be specified");
 }
 
 -(AmazonRegion) amazonRegion: (NSString *)region
