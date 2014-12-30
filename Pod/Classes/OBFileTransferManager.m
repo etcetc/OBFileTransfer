@@ -515,7 +515,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 // Upload & Download Completion Handling
 // ------
 
-// NOTE::: This gets called for upload and download when the task is complete, possibly w/ framework or server error (server error has bad response code which we cast into an NSError)
+//------
+// Error
+//------
+// NOTE::: This gets called for upload and download when the task is complete, possibly w/ framework or server error (server error has bad response code which we cast into an NSError).
+// NOTE: Server errors are not reported through the error parameter. The only errors your delegate receives through the error parameter are client-side errors, such as being unable to resolve the hostname or connect to the host. Server errors need to be discerned from the response.
 - (void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:task];
@@ -523,21 +527,23 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         if ( error.code == NSURLErrorCancelled )
             OB_INFO(@"Unable to find reference for task Identifier %lu because it had been cancelled",(unsigned long)task.taskIdentifier);
         else
-            OB_WARN(@"Unable to find reference for task Identifier %lu",(unsigned long)task.taskIdentifier);
+            OB_ERROR(@"Unable to find reference for task Identifier %lu",(unsigned long)task.taskIdentifier);
         return;
     }
+    
     NSString *marker = obtask.marker;
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)task.response;
-    //    OB_DEBUG(@"File transfer %@ response = %@",marker, response);
     if ( task.state == NSURLSessionTaskStateCompleted ) {
         
-//        Even though the URL connection may have been good, there may have been a server error or otherwise so let's create an internal error for this
+        // Even though the URL connection may have been good, there may have been a server error or otherwise so let's create an internal error for this
         if ( error == nil ) {
             error = [self createErrorFromHttpResponse:response.statusCode];
             if ( error )
-                OB_WARN(@"%@ File Transfer for %@ received status code %ld and error %@",obtask.typeUpload ? @"Upload" : @"Download", marker,(long)response.statusCode, error.localizedDescription);
-        
+                OB_WARN(@"%@ File Transfer for %@ received server error with status code %ld and error %@",obtask.typeUpload ? @"Upload" : @"Download", marker,(long)response.statusCode, error.localizedDescription);
+        }  else {
+            OB_WARN(@"%@ File Transfer for %@ received client error %@",obtask.typeUpload ? @"Upload" : @"Download", marker, error.localizedDescription);
         }
+        
         
         if ( error == nil ) {
             if (obtask.typeUpload){
@@ -548,19 +554,19 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             [self handleCompleted:task obtask:obtask error:error];
             OB_INFO(@"%@ for %@ done", obtask.typeUpload ? @"Upload" : @"Download", marker);
         } else {
-//            There was an error
+            // There was an error
             if ( [self isPermanentFailureWithStatusCode: response.statusCode] ||
-                 (self.maxAttempts != 0 && obtask.attemptCount >= self.maxAttempts) ) {
+                (self.maxAttempts != 0 && obtask.attemptCount >= self.maxAttempts) ) {
                 [self handleCompleted:task obtask:obtask error:error];
             } else {
-//                OK, we're going to retry now. If have not yet set up a timer, let's do so now
+                // OK, we're going to retry now. If have not yet set up a timer, let's do so now
                 [[self transferTaskManager] queueForRetry:obtask];
                 [self setupRetryTimer];
                 [self.delegate fileTransferRetrying:marker attemptCount: obtask.attemptCount  withError:error];
             }
         }
     } else {
-        OB_WARN(@"Indicated that task completed but state = %d", (int) task.state );
+        OB_ERROR(@"Indicated that task completed but state = %d", (int) task.state );
     }
 }
 
@@ -613,11 +619,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:downloadTask];
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)downloadTask.response;
     if ( response.statusCode/100 == 2   ) {
-        //        Now we need to copy the file to our downloads location...
+        // Now we need to copy the file to our downloads location...
         NSError * error;
         NSString *localFilePath = [[[self transferTaskManager] transferTaskForNSTask: downloadTask] localFilePath];
         
-//        If the file already exists, remove it and overwrite it
+        // If the file already exists, remove it and overwrite it
         if ( [[NSFileManager defaultManager] fileExistsAtPath:localFilePath] ) {
             [[NSFileManager defaultManager] removeItemAtPath:localFilePath error:&error];
         }
@@ -724,14 +730,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     }
 }
 
-// GARF: Detecting a 404 is probably not right here as I have seen cases of false positives. But we need some way to determine that
-// a particular url will never resolve especially if the client is in the habit of resetting the retry count each time it launches.
+// GARF: Detecting any 400 error is probably not right here as I have seen cases of false positives. But we need some way to determine that
+// a particular task will never resolve especially if the client is in the habit of resetting the retry count each time it launches.
 // Otherwise a task may retry forever.
 - (BOOL) isPermanentFailureWithStatusCode:(long)statusCode{
-    if (statusCode == (long)404)
-        return YES;
-    else
-        return NO;
+    return (statusCode/100 == 4) ? YES : NO;
 }
 
 
