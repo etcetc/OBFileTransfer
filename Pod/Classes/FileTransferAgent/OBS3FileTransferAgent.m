@@ -108,6 +108,26 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
     return request2;
 }
 
+- (NSError *) deleteFile:(NSString *)s3Url{
+    OB_INFO(@"Deleting S3 file %@ ",s3Url);
+    NSDictionary *urlComponents = [self urlToComponents:s3Url];
+    S3DeleteObjectRequest * request = [[S3DeleteObjectRequest alloc] init];
+    request.key = urlComponents[@"filePath"];
+    request.bucket = urlComponents[@"bucketName"];
+    request.endpoint =[AmazonClientManager s3].endpoint;
+    request.securityToken = [AmazonClientManager securityToken];
+    NSError *error = nil;
+    @try {
+        [[AmazonClientManager s3] deleteObject:request];
+    }
+    @catch (AmazonServiceException *e) {
+        error = [NSError errorWithDomain:NSURLErrorDomain
+                                    code:e.statusCode
+                                userInfo:@{NSLocalizedDescriptionKey: e.message}];
+    }
+    return error;
+}
+
 // Returns an NSDictionary with the following keys:
 // bucketName: the name of the bucket
 // filePath: the file path in the bucket

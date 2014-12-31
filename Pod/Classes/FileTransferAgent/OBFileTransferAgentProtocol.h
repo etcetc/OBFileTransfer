@@ -12,5 +12,9 @@
 - (instancetype) initWithConfig: (NSDictionary *)configParams;
 - (NSMutableURLRequest *) downloadFileRequest:(NSString *)sourcefileUrl withParams: (NSDictionary *)params;
 - (NSMutableURLRequest *) uploadFileRequest:(NSString *)filePath to:(NSString *)targetFileUrl withParams: (NSDictionary *)params;
+/**
+ * deleteFile is synchronous and returns an http response code.
+ */
+- (NSError *) deleteFile:(NSString *)targetFileUrl;
 - (BOOL) hasMultipartBody;
 @end

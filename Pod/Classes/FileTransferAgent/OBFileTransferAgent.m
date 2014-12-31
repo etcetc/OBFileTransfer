@@ -18,14 +18,18 @@ NSString * const ContentTypeParamKey = @"_contentType";
     return [self init];
 }
 
--(NSMutableURLRequest *) downloadFileRequest:(NSString *)sourcefileUrl withParams:(NSDictionary *)params
-{
+//-------------------------------------
+// Methods to be overridden by subclass
+//-------------------------------------
+-(NSMutableURLRequest *) downloadFileRequest:(NSString *)sourcefileUrl withParams:(NSDictionary *)params{
     [NSException raise:NSInternalInconsistencyException format:@"Please override method %@ in your subclass",NSStringFromSelector(_cmd)];
     return nil;
 }
-
--(NSMutableURLRequest *) uploadFileRequest:(NSString *)filePath to:(NSString *)targetFileUrl withParams:(NSDictionary *)params
-{
+-(NSMutableURLRequest *) uploadFileRequest:(NSString *)filePath to:(NSString *)targetFileUrl withParams:(NSDictionary *)params{
+    [NSException raise:NSInternalInconsistencyException format:@"Please override method %@ in your subclass",NSStringFromSelector(_cmd)];
+    return nil;
+}
+- (NSError *) deleteFile:(NSString *)targetFileUrl{
     [NSException raise:NSInternalInconsistencyException format:@"Please override method %@ in your subclass",NSStringFromSelector(_cmd)];
     return nil;
 }

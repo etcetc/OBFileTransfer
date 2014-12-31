@@ -75,6 +75,11 @@ extern NSString * const OBFTMOnlyForegroundTransferParam;                    // 
 // Note that the local file path can be absolute, or relative, in which case it's considered relative to the previously specified download or upload directories
 -(void) uploadFile:(NSString *)localFilePath to:(NSString *)remoteUrl withMarker: (NSString *)markerId withParams:(NSDictionary *)params;
 -(void) downloadFile:(NSString *)remoteUrl to:(NSString *)localFilePath withMarker: (NSString *)markerId withParams:(NSDictionary *)params;
+
+/**
+ * deleteFile is synchrounous and should be run on a background thread by the caller if async is required.
+ */
+-(NSError *) deleteFile:(NSString *)remoteUrl;
 -(void) restartTransfer: (NSString *) marker onComplete:(void(^)(NSDictionary *))completionBlockOrNil;
 -(void) cancelTransfer: (NSString *) marker onComplete:(void(^)())completionBlockOrNil;
 

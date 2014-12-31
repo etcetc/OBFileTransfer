@@ -238,7 +238,7 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         NSArray *runningTasks = [uploadTasks arrayByAddingObjectsFromArray:downloadTasks];
         NSArray *markedAsPorcessingTasks = [self.transferTaskManager processingTasks];
         if ( runningTasks.count != markedAsPorcessingTasks.count )
-            OB_ERROR(@"There are %lu tasks processing but %lu marked as processing", (unsigned long)runningTasks.count, markedAsPorcessingTasks.count);
+            OB_ERROR(@"There are %lu tasks processing but %lu marked as processing", (unsigned long)runningTasks.count, (unsigned long)markedAsPorcessingTasks.count);
         for ( NSURLSessionTask * task in runningTasks ) {
             OBFileTransferTask *obTask = [self.transferTaskManager transferTaskForNSTask:task];
             if ( obTask == nil ) {
@@ -293,6 +293,13 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 - (void) downloadFile:(NSString *)remoteFileUrl to:(NSString *)filePath withMarker: (NSString *)markerId withParams:(NSDictionary *) params
 {
     [self processTransfer:markerId remote:remoteFileUrl local:filePath params:params upload:NO];
+}
+
+- (NSError *) deleteFile:(NSString *)remoteUrl{
+    NSString *fullPath = [self fullRemotePath:remoteUrl];
+    OBFileTransferAgent * fileTransferAgent = [OBFileTransferAgentFactory fileTransferAgentInstance:fullPath
+                                                                                         withConfig:self.configParams];
+    return [fileTransferAgent deleteFile:fullPath];
 }
 
 // Cancel a transfer with the indicated marker.  When cancel is completed, call the callback if provided
