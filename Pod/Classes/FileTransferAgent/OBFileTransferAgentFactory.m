@@ -7,9 +7,6 @@
 //
 
 #import "OBFileTransferAgentFactory.h"
-#import "OBS3FileTransferAgent.h"
-#import "OBServerFileTransferAgent.h"
-#import "OBGoogleCloudStorageFileTransferAgent.h"
 
 NSString * const kAgentsPlistFile = @"FileTransferAgents";
 

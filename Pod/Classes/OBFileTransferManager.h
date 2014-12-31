@@ -84,6 +84,7 @@ extern NSString * const OBFTMOnlyForegroundTransferParam;                    // 
 -(void) cancelTransfer: (NSString *) marker onComplete:(void(^)())completionBlockOrNil;
 
 -(NSArray *) currentState;
+-(void)currentTransferStateWithCompletionHandler:(void (^)(NSArray *ftState))handler;
 -(NSString *) pendingSummary;
 -(void) retryPending;
 -(void) restartAllTasks:(void(^)())completionBlockOrNil;

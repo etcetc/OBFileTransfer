@@ -8,6 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import "OBFileTransferAgent.h"
+#import "OBS3FileTransferAgent.h"
+#import "OBServerFileTransferAgent.h"
+#import "OBGoogleCloudStorageFileTransferAgent.h"
 
 @interface OBFileTransferAgentFactory : NSObject
 
