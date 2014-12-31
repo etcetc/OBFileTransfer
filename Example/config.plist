@@ -13,9 +13,9 @@
 	<key>S3TvmServerUrlParam</key>
 	<string>http://default-environment-kkh4pgjjij.elasticbeanstalk.com</string>
 	<key>S3NoTvmAccessKeyParam</key>
-	<string>AKIAJV553QLVAKL75IAA</string>
+	<string></string>
 	<key>S3NoTvmSecretKeyParam</key>
-	<string>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</string>
+	<string></string>
 	<key>S3BucketName</key>
 	<string>tbm_videos</string>
 	<key>S3BucketNameSani</key>
