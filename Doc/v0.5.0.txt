@@ -1,0 +1,37 @@
+RELEASE NOTES
+=============
+
+v0.5.0 12/30/2014
+
+
+ x AmazonClientManager
+   x If S3TvmServerUrlParam is provided then use tvm
+   x If S3TvmServerUrlParam is not provided then use noTvmCredentials provided in configuration. Return an s3 client with those credentials.
+     (this is the case I will use in Zazo. Our own server will provide the app with credentials it will pass in configuration.)
+   x If S3TvmServerUrlParam is not provided and the noTvmCredentials are not provided in config return s3Client without credentials. (Publicly readable and writable s3 bucket)
+   
+ x Add currentTransferStateWithCompletionHandler method to FileTransferManager.
+ 
+ x Agents: make sure setAllowsCellularAccess:YES; setNetworkServiceType:NSURLNetworkServiceTypeBackground 
+   x Farhad added this for all agents in fileTransferManager. I made sure it was applied in all tasks not just upload tasks.
+   
+ x Bugfix - OBFileTransferTaskManager.instance initialize myQueue first
+ 
+ x Bugfix - AmazonClientManager - Use endpoint provided in configuration if it exists use us_east_1 as default.
+ 
+ x Test - Does setting security token to nil in the request or in s3 client cause a problem if no security token is required (our case)?
+   x securityToken can be safely set to nil when creating s3 if one is not required.
+   
+ x Server and client http error handling:
+   x Client error reported in URLSession:task:didCompleteWithError: error param should always be retried for all client errors.
+   x Server error reported in the task.response:
+     !! I would love to be able to pass information in the response body back to the app as it contains very useful information from a storage server like s3. However I cant seem to find a way to get the body when URLSession:task:didCompleteWithError: is called. Farhad if you can see a way it would be really nice!
+     x For now just look at the response code
+       x Any 400 error - permanent failure
+       x Any other error is retried   
+   
+ x Delete
+   x Add method to the agent protocol.
+   x Normalizes errors to NSError as we did for FileTransferErrors.
+   x Implemented only for S3
+   - TODO: Implement for server and google.
