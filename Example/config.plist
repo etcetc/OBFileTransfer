@@ -6,19 +6,19 @@
 	<string>926360415491</string>
 	<key>GoogleCloudStorageApiKey</key>
 	<string>AIzaSyCQTUxqLHCwjpdXMVCX8x2Z8fNXoGHnEc0</string>
-	<key>S3RegionParam</key>
+	<key>S3RegionParamFarhad</key>
 	<string>us_east_1</string>
-	<key>S3RegionParamSani</key>
+	<key>S3RegionParam</key>
 	<string>us_west_1</string>
-	<key>S3TvmServerUrlParam</key>
+	<key>S3TvmServerUrlParamFarhad</key>
 	<string>http://default-environment-kkh4pgjjij.elasticbeanstalk.com</string>
 	<key>S3NoTvmAccessKeyParam</key>
-	<string></string>
+	<string>AKIAJ7KWMVKHXJRF7TSQ</string>
 	<key>S3NoTvmSecretKeyParam</key>
-	<string></string>
-	<key>S3BucketName</key>
+	<string>3lkApMjSClhRtgBHjDL+Q6GIY92ygy33qHjvXoWo</string>
+	<key>S3BucketNameFarhad</key>
 	<string>tbm_videos</string>
-	<key>S3BucketNameSani</key>
+	<key>S3BucketName</key>
 	<string>com.zazo.videos</string>
 	<key>GoogleCloudStorageBucketName</key>
 	<string>bucket1.onebeat.com</string>

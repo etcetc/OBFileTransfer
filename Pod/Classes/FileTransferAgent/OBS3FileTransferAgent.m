@@ -51,8 +51,16 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
 - (NSMutableURLRequest *) downloadFileRequest:(NSString *)s3Url withParams:(NSDictionary *)params
 {
     NSDictionary *urlComponents = [self urlToComponents:s3Url];
-    S3GetObjectRequest * getRequest = [[S3GetObjectRequest alloc] initWithKey:urlComponents[@"filePath"] withBucket:urlComponents[@"bucketName"]];
-    OB_INFO(@"Creating S3 download file request from %@ ",s3Url);
+    NSString *filename;
+    if ( params[FilenameParamKey] != nil)
+        filename = params[FilenameParamKey];
+    else
+        filename = urlComponents[@"filename"];
+    
+    S3GetObjectRequest * getRequest = [[S3GetObjectRequest alloc] initWithKey:filename
+                                                                   withBucket:urlComponents[@"bucketName"]];
+    
+    OB_INFO(@"Creating S3 download file request from bucket:%@ key:%@",urlComponents[@"bucketName"], filename);
     getRequest.endpoint =[AmazonClientManager s3].endpoint;
     [getRequest setSecurityToken:[AmazonClientManager securityToken]];
     NSMutableURLRequest *request = [[AmazonClientManager s3] signS3Request:getRequest];
@@ -65,33 +73,31 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
 }
 
 // Upload the file to S3
-// The to: parameter is the path of the file in the bucket
-//
 // NOTE:
-//   The to: field is the directory structure - does not include the target filename!
 //   params actually contains header and parameter information for the request
 //   parameters that start with underscore (_) are special.
 //   We currently only look at _contentType
 -(NSMutableURLRequest *) uploadFileRequest:(NSString *)filePath to:(NSString *)s3Url withParams:(NSDictionary *)params
 {
-    if ( s3Url == nil ) s3Url = @"";
-    NSString *filename = params[FilenameParamKey] == nil ? [[filePath pathComponents] lastObject] : params[FilenameParamKey];
-    if ( ![s3Url hasSuffix:@"/"] )
-        s3Url = [s3Url stringByAppendingString:@"/"];
-    
-    if ( [filename hasPrefix:@"/"] )
-        s3Url = [s3Url stringByAppendingString:[filename substringFromIndex:1]];
-    else
-        s3Url =[s3Url stringByAppendingString:filename];
+    if ( s3Url == nil ) s3Url = @""; // Not sure what special case this is here for.
     
     NSDictionary *urlComponents = [self urlToComponents:s3Url];
-    S3PutObjectRequest * putRequest = [[S3PutObjectRequest alloc] initWithKey:urlComponents[@"filePath"] inBucket:urlComponents[@"bucketName"]];
-    OB_INFO(@"Creating S3 upload request for file %@ to %@ ",filePath,s3Url);
-    putRequest.filename = filePath;
-    putRequest.filename = @"/Users/ff/foo.jpg";
-    putRequest.endpoint =[AmazonClientManager s3].endpoint;
-    [putRequest setSecurityToken:[AmazonClientManager securityToken]];
     
+    NSString *filename;
+    if ( params[FilenameParamKey] != nil)
+        filename = params[FilenameParamKey];
+    else if (urlComponents[@"filename"] != nil)
+        filename = urlComponents[@"filename"];
+    else
+        filename = [[filePath pathComponents] lastObject];
+    
+    S3PutObjectRequest * putRequest = [[S3PutObjectRequest alloc] initWithKey:filename
+                                                                     inBucket:urlComponents[@"bucketName"]];
+    
+    OB_INFO(@"Creating S3 upload request for file %@ to bucket: %@, key: %@", filePath, urlComponents[@"bucketName"], filename);
+    putRequest.filename = filePath;  // Is this used for anything?
+    putRequest.endpoint =[AmazonClientManager s3].endpoint;
+    putRequest.securityToken = [AmazonClientManager securityToken];
     putRequest.contentType = params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
     
     // NOTE - as of ios 8 it seems that I have to supply the content length or else it remains at 0 and nothing is sent
@@ -104,15 +110,15 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
-
+    
     return request2;
 }
 
 - (NSError *) deleteFile:(NSString *)s3Url{
-    OB_INFO(@"Deleting S3 file %@ ",s3Url);
     NSDictionary *urlComponents = [self urlToComponents:s3Url];
+    OB_INFO(@"Deleting S3 file bucket:%@ file:%@", urlComponents[@"bucketName"], urlComponents[@"filename"]);
     S3DeleteObjectRequest * request = [[S3DeleteObjectRequest alloc] init];
-    request.key = urlComponents[@"filePath"];
+    request.key = urlComponents[@"filename"];
     request.bucket = urlComponents[@"bucketName"];
     request.endpoint =[AmazonClientManager s3].endpoint;
     request.securityToken = [AmazonClientManager securityToken];
@@ -140,9 +146,12 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
     } else {
         path = url;
     }
-    // This'll throw up if there are no /s in the input
+    
     NSInteger firstSlash = [path rangeOfString:@"/"].location;
-    return @{@"bucketName":[path substringToIndex:firstSlash], @"filePath": [path substringFromIndex:firstSlash+1]};
+    if (firstSlash == NSNotFound)
+        return @{@"bucketName":path};
+    else
+        return @{@"bucketName":[path substringToIndex:firstSlash], @"filename": [path substringFromIndex:firstSlash+1]};
 }
 
 
