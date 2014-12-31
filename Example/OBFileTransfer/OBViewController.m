@@ -133,10 +133,10 @@ NSString * const OBGSBucketNameParam = @"GoogleCloudStorageBucketName";
     [self.fileTransferManager reset:^{
         [[NSOperationQueue mainQueue] addOperationWithBlock:^ {
             [self displayPending];
-//            [self uploadFile: @"uploadtest_vsmall.jpg"];
-//            [self uploadFile: @"uploadtest_medium.jpg"];
-//            [self downloadFile:@"downloadtest_large.jpg"];
-//            [self downloadFile:@"downloadtest_medium.jpg"];
+            [self uploadFile: @"uploadtest_vsmall.jpg"];
+            [self uploadFile: @"uploadtest_medium.jpg"];
+            [self downloadFile:@"downloadtest_large.jpg"];
+            [self downloadFile:@"downloadtest_medium.jpg"];
             [self deleteFile:@"test6054.jpg"];
 //            [self downloadFile:@"test9062_nothere.jpg"];
         }];
