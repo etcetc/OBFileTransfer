@@ -35,3 +35,32 @@ v0.5.0 12/30/2014
    x Normalizes errors to NSError as we did for FileTransferErrors.
    x Implemented only for S3
    - TODO: Implement for server and google.
+   
+
+v0.5.2
+ - s3FTA.uploadFileRequest and s3FTA.downloadFileRequest seem to have a different convention regarding path and filename. 
+       - Here is how I found the code:
+           - uploadFileRequest
+             - remoteUrl: expected NOT to include the filename only the bucket name
+             - remoteFilename = params[FileNameParamKey] || local filename 
+             - remoteUrl += remoteFilename
+             - bucket, key = urlComponents(s3Url) 
+           - downloadFileRequest
+             - remoteUrl: expected to include the filename
+             - bucket, key = urlComponents(s3Url)
+           - urlComponents 
+             - Throws up if not in the form bucketname/filename
+           - Questions and observations
+             - Did we do this because we want to allow the convention of using the localFilename as the remoteFilename in case one is not provided?
+             - As a user of the api who was trying to
+               - Get server and s3 both working
+               - Not use local filename as remote filename in case of upload
+               - I found it very confusing to get it all working. 
+       - Simplification to reduce frustration for api user
+           - handle remoteUrl the same whether doing an upload or download
+           - remoteFilename
+               - if params[FileNameParamKey] is provided use that
+               - else try to extract from remoteUrl which should be of the form bucket/filename
+               - else only in case of upload use local filename
+           - bucket
+               - For both upload and download extract from remoteUrl
