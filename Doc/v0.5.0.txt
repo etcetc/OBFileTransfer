@@ -64,3 +64,13 @@ v0.5.2
                - else only in case of upload use local filename
            - bucket
                - For both upload and download extract from remoteUrl
+               
+v 0.5.3
+- Make sure we retry all client errors. (even 4xx)
+  - In cases where the client is not able to reach the server such as a dns problem resolving the url we get a client error rather reported through the error param in - (void) URLSession:task:didCompleteWithError:
+  - In all cases we want to retry client errors.
+  - As the code was written if these client errors resolved to isPermanentFailure we did not retry them.
+  
+- Adjust the logic for isPermanentFailureWithStatusCode.
+  - The logic was adjusted to respond correctly in the case of s3. If other agents are different then we will need to delegate this method to the agents.
+  

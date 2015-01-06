@@ -137,7 +137,7 @@ NSString * const OBGSBucketNameParam = @"GoogleCloudStorageBucketName";
             [self uploadFile: @"uploadtest_medium.jpg"];
             [self downloadFile:@"downloadtest_large.jpg"];
             [self downloadFile:@"downloadtest_medium.jpg"];
-            [self deleteFile:@"test6054.jpg"];
+//            [self deleteFile:@"test6054.jpg"];  // Only implemented for s3
 //            [self downloadFile:@"test9062_nothere.jpg"];
         }];
     }];

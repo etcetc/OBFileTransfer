@@ -527,6 +527,7 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 //------
 // NOTE::: This gets called for upload and download when the task is complete, possibly w/ framework or server error (server error has bad response code which we cast into an NSError).
 // NOTE: Server errors are not reported through the error parameter. The only errors your delegate receives through the error parameter are client-side errors, such as being unable to resolve the hostname or connect to the host. Server errors need to be discerned from the response.
+// NOTE: We retry all client errors even if they are 400 errors. In some cases when not able to resolve the host due to dns problems or otherwises we get a 400 client error but should retry as it should eventually resolve.
 - (void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error
 {
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:task];
@@ -542,12 +543,14 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)task.response;
     if ( task.state == NSURLSessionTaskStateCompleted ) {
         
-        // Even though the URL connection may have been good, there may have been a server error or otherwise so let's create an internal error for this
+        BOOL isClientError = NO;
         if ( error == nil ) {
+            // Even though the URL connection may have been good, there may have been a server error or otherwise so let's create an internal error for this
             error = [self createErrorFromHttpResponse:response.statusCode];
             if ( error )
                 OB_WARN(@"%@ File Transfer for %@ received server error with status code %ld and error %@",obtask.typeUpload ? @"Upload" : @"Download", marker,(long)response.statusCode, error.localizedDescription);
         }  else {
+            isClientError = YES;
             OB_WARN(@"%@ File Transfer for %@ received client error %@",obtask.typeUpload ? @"Upload" : @"Download", marker, error.localizedDescription);
         }
         
@@ -562,14 +565,15 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             OB_INFO(@"%@ for %@ done", obtask.typeUpload ? @"Upload" : @"Download", marker);
         } else {
             // There was an error
-            if ( [self isPermanentFailureWithStatusCode: response.statusCode] ||
-                (self.maxAttempts != 0 && obtask.attemptCount >= self.maxAttempts) ) {
-                [self handleCompleted:task obtask:obtask error:error];
-            } else {
-                // OK, we're going to retry now. If have not yet set up a timer, let's do so now
+            BOOL shouldRetry =  ( isClientError || ![self isPermanentFailureWithStatusCode: response.statusCode] ) &&
+                                ( self.maxAttempts == 0 ||  obtask.attemptCount < self.maxAttempts);
+            
+            if ( shouldRetry ) {
                 [[self transferTaskManager] queueForRetry:obtask];
                 [self setupRetryTimer];
                 [self.delegate fileTransferRetrying:marker attemptCount: obtask.attemptCount  withError:error];
+            } else {
+                [self handleCompleted:task obtask:obtask error:error];
             }
         }
     } else {
@@ -737,11 +741,21 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     }
 }
 
-// GARF: Detecting any 400 error is probably not right here as I have seen cases of false positives. But we need some way to determine that
-// a particular task will never resolve especially if the client is in the habit of resetting the retry count each time it launches.
-// Otherwise a task may retry forever.
+// Note this is correct handling for S3 errors. If we find that various agents are different with respect to determining permanent failures
+// then we probably need to move this method in the agent.
 - (BOOL) isPermanentFailureWithStatusCode:(long)statusCode{
-    return (statusCode/100 == 4) ? YES : NO;
+    BOOL r = NO;
+    
+    if (statusCode/100 == 4)
+        r = YES;
+    
+    if (statusCode == 501)
+        r = YES;
+    
+    if (statusCode == 301)
+        r = YES;
+    
+    return r;
 }
 
 

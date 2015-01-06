@@ -186,6 +186,7 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
     else if ( [lcRegion isEqualToString:@"sa_east_1"] )
         awsRegion = SA_EAST_1;
     else
+        OB_ERROR(@"Unknown AWS Region specified: %@",region);
         [NSException raise:NSInternalInconsistencyException format:@"Unknown AWS Region specified: %@",region];
     return awsRegion;
 }
