@@ -67,7 +67,7 @@ v0.5.2
                
 v 0.5.3
 - Make sure we retry all client errors. (even 4xx)
-  - In cases where the client is not able to reach the server such as a dns problem resolving the url we get a client error rather reported through the error param in - (void) URLSession:task:didCompleteWithError:
+  - In cases where the client is not able to reach the server such as a dns problem resolving the url we get a client error reported through the error param in - (void) URLSession:task:didCompleteWithError:
   - In all cases we want to retry client errors.
   - As the code was written if these client errors resolved to isPermanentFailure we did not retry them.
   
