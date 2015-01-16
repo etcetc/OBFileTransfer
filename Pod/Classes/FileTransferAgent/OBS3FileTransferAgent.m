@@ -171,19 +171,21 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
     if ( region == nil )
         return US_EAST_1;
     
-    if ( [lcRegion isEqualToString:@"us_east_1"] )
+    lcRegion = [lcRegion stringByReplacingOccurrencesOfString:@"_" withString:@"-"];
+    
+    if ( [lcRegion isEqualToString:@"us-east-1"] )
         awsRegion = US_EAST_1;
-    else if ( [lcRegion isEqualToString:@"us_west_1"] )
+    else if ( [lcRegion isEqualToString:@"us-west-1"] )
         awsRegion = US_WEST_1;
-    else if ( [lcRegion isEqualToString:@"us_west_2"] )
+    else if ( [lcRegion isEqualToString:@"us-west-2"] )
         awsRegion = US_WEST_2;
-    else if ( [lcRegion isEqualToString:@"ap_southeast_1"] )
+    else if ( [lcRegion isEqualToString:@"ap-southeast-1"] )
         awsRegion = AP_SOUTHEAST_1;
-    else if ( [lcRegion isEqualToString:@"ap_southeast_2"] )
+    else if ( [lcRegion isEqualToString:@"ap-southeast-2"] )
         awsRegion = AP_SOUTHEAST_2;
-    else if ( [lcRegion isEqualToString:@"ap_northeast_1"] )
+    else if ( [lcRegion isEqualToString:@"ap-northeast-1"] )
         awsRegion = AP_NORTHEAST_1;
-    else if ( [lcRegion isEqualToString:@"sa_east_1"] )
+    else if ( [lcRegion isEqualToString:@"sa-east-1"] )
         awsRegion = SA_EAST_1;
     else {
         OB_ERROR(@"Unknown AWS Region specified: %@",region);

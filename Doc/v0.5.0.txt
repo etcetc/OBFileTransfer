@@ -82,4 +82,7 @@ v 0.5.4 1/7/2015
 - Refine retry logic for client errors. Retrying all client errors is not exactly what we want. 
 - Fixed bug I introduced in region in obS3FileTransferAgent release 0.5.3
 
-  
+
+v 0.5.5 1/16/2015
+-------
+- S3 region can be specified with dashes or underscores.
