@@ -336,10 +336,15 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     [[self session] getTasksWithCompletionHandler: ^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
         NSMutableArray *state = [[NSMutableArray alloc] init];
         for ( NSURLSessionTask * task in [uploadTasks arrayByAddingObjectsFromArray:downloadTasks] ) {
-            OBFileTransferTask * obTask = [[self transferTaskManager] transferTaskForNSTask:task];
-            NSDictionary *info = [obTask info];
             NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-            [dict addEntriesFromDictionary:info];
+
+            OBFileTransferTask * obTask = [[self transferTaskManager] transferTaskForNSTask:task];
+            if (obTask != nil){
+                NSDictionary *info = [obTask info];
+                [dict addEntriesFromDictionary:info];
+            } else {
+                OB_WARN(@"FTM: currentTransferStateWithCompletionHandler: got no obtask for transfer task: %@", task);
+            }
             dict[CountOfBytesExpectedToReceiveKey] = [NSNumber numberWithLongLong: [task countOfBytesExpectedToReceive]];
             dict[CountOfBytesReceivedKey] = [NSNumber numberWithLongLong:[task countOfBytesReceived]];
             dict[CountOfBytesExpectedToSendKey] = [NSNumber numberWithLongLong: [task countOfBytesExpectedToSend]];

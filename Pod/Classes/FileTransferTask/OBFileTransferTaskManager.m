@@ -255,7 +255,7 @@ static dispatch_queue_t myQueue;
     @synchronized(self) {
     //    OB_DEBUG(@"Starting to restore OBTasks state");
         NSDictionary *stateDictionary;
-        [self.tasks removeAllObjects];
+        [self removeAllTasks];
         if ( ![[NSFileManager defaultManager] fileExistsAtPath:self.statePlistFile] ) {
             OB_DEBUG(@"OBTasks file does not exist so saving current state");
             [self saveState];
@@ -313,6 +313,12 @@ static dispatch_queue_t myQueue;
     NSArray *copy = [NSArray arrayWithArray:self.tasks];
     [self.arrayLock unlock];
     return copy;
+}
+
+- (void) removeAllTasks{
+    [self.arrayLock lock];
+    [self.tasks removeAllObjects];
+    [self.arrayLock unlock];
 }
 @end
 
