@@ -86,7 +86,7 @@ static dispatch_queue_t myQueue;
 -(NSArray *) currentState
 {
     NSMutableArray *taskStates = [NSMutableArray new];
-    for ( OBFileTransferTask * task in [self tasks] ) {
+    for ( OBFileTransferTask * task in [self tasksCopy] ) {
         [taskStates addObject:task.info];
     }
     return taskStates;
@@ -95,7 +95,7 @@ static dispatch_queue_t myQueue;
 -(NSString *) tasksSummary
 {
     NSMutableString *tasksDesc = [NSMutableString stringWithString:@""];
-    for ( OBFileTransferTask * task in [self tasks] ) {
+    for ( OBFileTransferTask * task in [self tasksCopy] ) {
         NSString * statusStr;
         switch (task.status) {
             case FileTransferInProgress:
@@ -120,7 +120,7 @@ static dispatch_queue_t myQueue;
 -(NSArray *)processingTasks
 {
     NSMutableArray *processing = [NSMutableArray new];
-    for ( OBFileTransferTask * task in [self tasks] ) {
+    for ( OBFileTransferTask * task in [self tasksCopy] ) {
         if ( task.status == FileTransferInProgress )
             [processing addObject:task];
     }
@@ -130,7 +130,7 @@ static dispatch_queue_t myQueue;
 -(NSArray *)pendingTasks
 {
     NSMutableArray *pending = [NSMutableArray new];
-    for ( OBFileTransferTask * task in [self tasks] ) {
+    for ( OBFileTransferTask * task in [self tasksCopy] ) {
         if ( task.status == FileTransferPendingRetry )
             [pending addObject:task];
     }
@@ -139,7 +139,7 @@ static dispatch_queue_t myQueue;
 
 -(NSArray *) allTasks
 {
-    return [NSArray arrayWithArray:self.tasks];
+    return [self tasksCopy];
 }
 
 -(void) queueForRetry: (OBFileTransferTask *) obTask
@@ -193,7 +193,7 @@ static dispatch_queue_t myQueue;
 
 -(OBFileTransferTask *) transferTaskForNSTask:(NSURLSessionTask *)nsTask
 {
-    for ( OBFileTransferTask * task in [self tasks] ) {
+    for ( OBFileTransferTask * task in [self tasksCopy] ) {
         if ( task.nsTaskIdentifier == nsTask.taskIdentifier )
             return task;
     }
@@ -203,7 +203,7 @@ static dispatch_queue_t myQueue;
 
 -(OBFileTransferTask *) transferTaskWithMarker:(NSString *)marker
 {
-    for ( OBFileTransferTask * task in [self tasks] ) {
+    for ( OBFileTransferTask * task in [self tasksCopy] ) {
         if ( [task.marker isEqualToString:marker] )
             return task;
     }
@@ -230,12 +230,13 @@ static dispatch_queue_t myQueue;
 }
 
 // Save and restore the current state of the tasks in a thread-safe manner by using a serial queue
+// We want to make sure that saves occur chronologically, that a later thread doesnt save before a first thread
 -(void) saveState
 {
     dispatch_async(myQueue, ^{
         //    OB_DEBUG(@"Starting to save OBTasks state");
         NSMutableArray *tasksToSave = [[NSMutableArray alloc] init];
-        for ( OBFileTransferTask *task in self.tasks ) {
+        for ( OBFileTransferTask *task in [self tasksCopy] ) {
             [tasksToSave addObject:[task asDictionary]];
         }
         NSDictionary *stateDictionary = @{@"tasks": tasksToSave, @"retryTimerCount": [NSNumber numberWithInteger:self.retryTimerCount]};
@@ -296,12 +297,22 @@ static dispatch_queue_t myQueue;
 
 -(void) resetRetries
 {
+    [self.arrayLock lock];
     for ( OBFileTransferTask *task in self.tasks ) {
         task.attemptCount = 0;
     }
     self.retryTimerCount = 0;
+    [self.arrayLock unlock];
     [self saveState];
 }
 
+// Create an immutable copy of the tasks array
+-(NSArray *) tasksCopy
+{
+    [self.arrayLock lock];
+    NSArray *copy = [NSArray arrayWithArray:self.tasks];
+    [self.arrayLock unlock];
+    return copy;
+}
 @end
 
