@@ -86,3 +86,8 @@ v 0.5.4 1/7/2015
 v 0.5.5 1/16/2015
 -------
 - S3 region can be specified with dashes or underscores.
+
+v 0.5.6 2/17/2015
+--------
+Bug fix in ftm:currentTransferStateWithCompletionHandler:
+Was using a variable declared outside of the block in the block without using a block variable.

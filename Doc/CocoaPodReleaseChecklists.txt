@@ -29,7 +29,7 @@ To Collaborate
 - Make changes in your local clone of noplanb/FileTransferPlay repo
   - Change the version in the podspec file
   - lint to make sure ok
-    $ rvm 1.9.3
+    $ rvm 2.0.0
     $ pod lib lint
 	
 - Push changes to the noplanb/FileTransferPlay repo and tag it with the same version as in the podspec file
