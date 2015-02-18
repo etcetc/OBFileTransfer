@@ -333,8 +333,8 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 }
 
 -(void)currentTransferStateWithCompletionHandler:(void (^)(NSArray *ftState))handler{
-    NSMutableArray *state = [[NSMutableArray alloc] init];
     [[self session] getTasksWithCompletionHandler: ^(NSArray *dataTasks, NSArray *uploadTasks, NSArray *downloadTasks) {
+        NSMutableArray *state = [[NSMutableArray alloc] init];
         for ( NSURLSessionTask * task in [uploadTasks arrayByAddingObjectsFromArray:downloadTasks] ) {
             OBFileTransferTask * obTask = [[self transferTaskManager] transferTaskForNSTask:task];
             NSDictionary *info = [obTask info];
