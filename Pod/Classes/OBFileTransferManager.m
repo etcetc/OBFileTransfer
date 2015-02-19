@@ -470,9 +470,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             if ( [[NSFileManager defaultManager] fileExistsAtPath:tmpFile] ) {
                 [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:&error];
                 if ( error != nil )
-                    OB_ERROR(@"Unable to delete existing temporary file %@",tmpFile);
+                    OB_ERROR(@"FTM: createNsTaskFromObTask: Unable to delete existing temporary file %@",tmpFile);
                 else
-                    OB_DEBUG(@"Deleted existing tmp file %@",tmpFile);
+                    OB_DEBUG(@"FTM: createNsTaskFromObTask: Deleted existing tmp file %@",tmpFile);
                 
                 error = nil;
             }
@@ -483,13 +483,13 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             } else {
                 [[NSFileManager defaultManager] copyItemAtPath:obTask.localFilePath toPath:tmpFile error:&error];
                 if ( error != nil )
-                    OB_ERROR(@"Unable to copy file %@ to temporary file %@",obTask.localFilePath, tmpFile);
+                    OB_ERROR(@"FTM: createNsTaskFromObTask: Unable to copy file %@ to temporary file %@",obTask.localFilePath, tmpFile);
             }
             
             if ( error == nil ) {
                 [self.transferTaskManager update:obTask withLocalFilePath:tmpFile];
             } else {
-                OB_ERROR(@"Unable to create transfer task because of error: %@", error.localizedDescription );
+                OB_ERROR(@"FTM: createNsTaskFromObTask: Unable to create transfer task because of error: %@", error.localizedDescription );
                 return nil;
             }
             
