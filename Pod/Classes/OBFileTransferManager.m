@@ -162,8 +162,22 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     // Create a single session and make it be thread-safe
     dispatch_once(&sessionCreationOnceToken, ^{
         OB_INFO(@"Creating a %@ URLSession",self.foregroundTransferOnly ? @"foreground" : @"background");
-        NSURLSessionConfiguration *configuration = self.foregroundTransferOnly ? [NSURLSessionConfiguration defaultSessionConfiguration] :
-        [NSURLSessionConfiguration backgroundSessionConfiguration:OBFileTransferSessionIdentifier];
+        NSURLSessionConfiguration *configuration;
+        if (self.foregroundTransferOnly)
+        {
+            configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+        }
+        else
+        {
+            if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.f)
+            {
+                configuration = [NSURLSessionConfiguration backgroundSessionConfiguration:OBFileTransferSessionIdentifier];
+            }
+            else
+            {
+                configuration = [NSURLSessionConfiguration backgroundSessionConfigurationWithIdentifier:OBFileTransferSessionIdentifier];
+            }
+        }
         configuration.HTTPMaximumConnectionsPerHost = 10;
         // Hardcoded
         configuration.allowsCellularAccess = YES;
@@ -337,7 +351,7 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         NSMutableArray *state = [[NSMutableArray alloc] init];
         for ( NSURLSessionTask * task in [uploadTasks arrayByAddingObjectsFromArray:downloadTasks] ) {
             NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
-
+            
             OBFileTransferTask * obTask = [[self transferTaskManager] transferTaskForNSTask:task];
             if (obTask != nil){
                 NSDictionary *info = [obTask info];
@@ -470,9 +484,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             if ( [[NSFileManager defaultManager] fileExistsAtPath:tmpFile] ) {
                 [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:&error];
                 if ( error != nil )
-                    OB_ERROR(@"FTM: createNsTaskFromObTask: Unable to delete existing temporary file %@",tmpFile);
+                    OB_ERROR(@"Unable to delete existing temporary file %@",tmpFile);
                 else
-                    OB_DEBUG(@"FTM: createNsTaskFromObTask: Deleted existing tmp file %@",tmpFile);
+                    OB_DEBUG(@"Deleted existing tmp file %@",tmpFile);
                 
                 error = nil;
             }
@@ -483,13 +497,13 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             } else {
                 [[NSFileManager defaultManager] copyItemAtPath:obTask.localFilePath toPath:tmpFile error:&error];
                 if ( error != nil )
-                    OB_ERROR(@"FTM: createNsTaskFromObTask: Unable to copy file %@ to temporary file %@",obTask.localFilePath, tmpFile);
+                    OB_ERROR(@"Unable to copy file %@ to temporary file %@",obTask.localFilePath, tmpFile);
             }
             
             if ( error == nil ) {
                 [self.transferTaskManager update:obTask withLocalFilePath:tmpFile];
             } else {
-                OB_ERROR(@"FTM: createNsTaskFromObTask: Unable to create transfer task because of error: %@", error.localizedDescription );
+                OB_ERROR(@"Unable to create transfer task because of error: %@", error.localizedDescription );
                 return nil;
             }
             
@@ -713,6 +727,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:downloadTask];
+    if (obtask == nil){
+        OB_ERROR(@"FTM:downloadTaskDidFinishDownloading: Got nil obtask for downloadTask: %@ This should never happen. Current_state: %@", downloadTask, [self currentState]);
+        return;
+    }
+    
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)downloadTask.response;
     if ( response.statusCode/100 == 2   ) {
         // Now we need to copy the file to our downloads location...
@@ -730,6 +749,8 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         } else {
             [self.transferTaskManager update:obtask withStatus: FileTransferDownloadFileReady];
         }
+    } else {
+        OB_ERROR(@"FTM:downloadTaskDidFinishDownloading: got non 200 response for downloadTask: %@ This should never happen. Current_state: %@ reponse: %@",downloadTask, [self currentState], response);
     }
 }
 
