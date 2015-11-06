@@ -7,6 +7,6 @@
 */
 
 "OBFTMUnknownError" = "Unknown Error";
-"OBFTMTmpFileCreateError" = "Error creating the temporary upload file",
-"OBFTMTmpFileDeleteError" = "Error deleting previous temporary upload file"
+"OBFTMTmpFileCreateError" = "Error creating the temporary upload file";
+"OBFTMTmpFileDeleteError" = "Error deleting previous temporary upload file";
 
