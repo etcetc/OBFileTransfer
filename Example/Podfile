@@ -1,3 +1,5 @@
+source 'https://github.com/CocoaPods/Specs.git'
+
 target 'OBFileTransfer', :exclusive => true do
   pod "OBFileTransfer", :path => "../"
   pod "OBLogger"

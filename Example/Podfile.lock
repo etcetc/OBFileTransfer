@@ -1,6 +1,6 @@
 PODS:
   - Expecta (0.3.1)
-  - OBFileTransfer (0.5.2):
+  - OBFileTransfer (0.6.0):
     - OBLogger
   - OBLogger (0.2.1)
   - Specta (0.2.1)
@@ -16,9 +16,9 @@ EXTERNAL SOURCES:
     :path: ../
 
 SPEC CHECKSUMS:
-  Expecta: 03aabd0a89d8dea843baecb19a7fd7466a69a31d
-  OBFileTransfer: f1b4becb207a46f9cd5fcf96f3475776b2fb8990
-  OBLogger: 985c0de4b5af9cef058adbbb67d74a2fccdeba9e
-  Specta: 9141310f46b1f68b676650ff2854e1ed0b74163a
+  Expecta: a354d4633409dd9fe8c4f5ff5130426adbe31628
+  OBFileTransfer: c161d1b252b8f56764ee2140f5094deacb6d0eca
+  OBLogger: 8cfaed1a86da006f2b24877e6c7329bc5071260b
+  Specta: 15a276a6343867b426d5ed135d5aa4d04123a573
 
-COCOAPODS: 0.35.0
+COCOAPODS: 0.39.0

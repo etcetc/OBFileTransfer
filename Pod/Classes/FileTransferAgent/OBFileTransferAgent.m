@@ -12,6 +12,7 @@
 
 NSString * const FilenameParamKey = @"_filename";
 NSString * const ContentTypeParamKey = @"_contentType";
+NSString * const kOBFileTransferMetadataKey = @"_metadata";
 
 -(instancetype) initWithConfig:(NSDictionary *)configParams
 {

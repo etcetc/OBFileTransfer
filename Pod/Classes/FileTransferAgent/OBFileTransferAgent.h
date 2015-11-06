@@ -16,6 +16,8 @@
 //  FormFileFieldNameParamKey: contains the field name containing the file. Default: file.
 extern NSString * const FilenameParamKey;
 extern NSString * const ContentTypeParamKey;
+extern NSString * const kOBFileTransferMetadataKey;
+
 
 @interface OBFileTransferAgent : NSObject <OBFileTransferAgentProtocol>
 

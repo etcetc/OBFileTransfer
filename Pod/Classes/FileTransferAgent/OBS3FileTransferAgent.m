@@ -100,13 +100,15 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
     putRequest.securityToken = [AmazonClientManager securityToken];
     putRequest.contentType = params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
     
+    [self addMetadataToS3PutObjectRequest:putRequest params:params];
+    
     // NOTE - as of ios 8 it seems that I have to supply the content length or else it remains at 0 and nothing is sent
     NSError *error;
     putRequest.contentLength = [[[NSFileManager defaultManager] attributesOfItemAtPath:filePath error:&error] fileSize];
     
     NSMutableURLRequest *request = [[AmazonClientManager s3] signS3Request:putRequest];
     
-    // We have to copy over because request is actually a sublass of NSMutableREquest and can cause problems
+    // We have to copy over because request is actually a sublass of NSMutableRequest and can cause problems
     NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
     [request2 setHTTPMethod:request.HTTPMethod];
     [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
@@ -192,6 +194,14 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
         awsRegion = US_EAST_1;
     }
     return awsRegion;
+}
+
+- (void)addMetadataToS3PutObjectRequest:(S3PutObjectRequest*)request params:(NSDictionary*)params{
+    NSDictionary *metadataDictionary = params[kOBFileTransferMetadataKey];
+    for (NSString *key in metadataDictionary)
+    {
+        [request addMetadataWithValue:metadataDictionary[key] forKey:key];
+    }
 }
 
 @end
