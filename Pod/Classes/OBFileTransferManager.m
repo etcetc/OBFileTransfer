@@ -508,8 +508,8 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             }
             
         } else {
-            // Create the request w/o the file - just an optimization.
-            request = [fileTransferAgent uploadFileRequest:nil to:obTask.remoteUrl withParams:obTask.params];
+            // filePath may not be nil because S3 needs to calculate contentLength as of IOS 8.
+            request = [fileTransferAgent uploadFileRequest:obTask.localFilePath to:obTask.remoteUrl withParams:obTask.params];
         }
         if ( !self.foregroundTransferOnly )
             request.networkServiceType = NSURLNetworkServiceTypeBackground;
