@@ -1,6 +1,6 @@
 PODS:
   - Expecta (0.3.1)
-  - OBFileTransfer (0.6.0):
+  - OBFileTransfer (0.6.3):
     - OBLogger
   - OBLogger (0.2.1)
   - Specta (0.2.1)
@@ -17,7 +17,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Expecta: a354d4633409dd9fe8c4f5ff5130426adbe31628
-  OBFileTransfer: c161d1b252b8f56764ee2140f5094deacb6d0eca
+  OBFileTransfer: 0174eb0f61c3455fccaeebb07073bf9d1099e994
   OBLogger: 8cfaed1a86da006f2b24877e6c7329bc5071260b
   Specta: 15a276a6343867b426d5ed135d5aa4d04123a573
 

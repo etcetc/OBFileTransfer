@@ -1,0 +1,25 @@
+RELEASE NOTES 0.7.0
+===================
+
+
+BUG - Error in copying downloaded file after kill.
+--------------------------------------------------
+
+Reproduce:
+ - Steps:
+   - While uploading put app in background
+   - Immediately disconnect router cable to break network connection
+   - Kill the app in the task manager.
+ - Observe:
+   - When app resumes we get the following error while trying to copy the downloaded file:
+
+   2016-02-05 11:32:09.976 Zazo-NetworkTest[7291:2295884] **** ERROR: Unable to copy downloaded file to '/var/mobile/Containers/Data/Application/48C3688A-9E96-4DFA-86B9-3ED8F0302169/Documents/incomingVidFromFriend_2020-VideoId_1454614323732.mp4' due to error: The file "CFNetworkDownload_RARDBs.tmp" doesn't exist.
+
+   - Retrying the same download causes the same error to occur even if app is not killed as part of the process.
+
+
+Cause:
+  - FTM shouldn't persist absolute paths because app's folder may change (at rebuild from Xcode, app update, iOS update, restore from backup);
+
+
+

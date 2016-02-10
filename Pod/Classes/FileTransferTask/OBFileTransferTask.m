@@ -81,7 +81,7 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
     [aCoder encodeObject:self.marker forKey:MarkerKey];
     [aCoder encodeInteger:self.nsTaskIdentifier forKey:NSTaskIdentifierKey];
     [aCoder encodeObject:self.remoteUrl forKey:RemoteUrlKey];
-    [aCoder encodeObject:self.localFilePath forKey:LocalFilePathKey];
+    [aCoder encodeObject:[self _relativeSavePathFromAbsolute:self.localFilePath] forKey:LocalFilePathKey];
     [aCoder encodeObject:self.params forKey:ParamsKey];
     [aCoder encodeInteger:self.attemptCount forKey:AttemptsKey];
     [aCoder encodeInteger:self.status forKey:StatusKey];
@@ -96,7 +96,7 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
         self.marker = [aDecoder decodeObjectForKey:MarkerKey];
         self.nsTaskIdentifier = [aDecoder decodeIntegerForKey:NSTaskIdentifierKey];
         self.remoteUrl = [aDecoder decodeObjectForKey:RemoteUrlKey];
-        self.localFilePath = [aDecoder decodeObjectForKey:LocalFilePathKey];
+        self.localFilePath = [self _absoluteSavePathFromRelative:[aDecoder decodeObjectForKey:LocalFilePathKey]];
         self.params = [aDecoder decodeObjectForKey:ParamsKey];
         self.attemptCount = [aDecoder decodeIntegerForKey:AttemptsKey];
         self.status = [aDecoder decodeIntegerForKey:StatusKey];
@@ -113,7 +113,8 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
     dict[MarkerKey] = self.marker;
     dict[NSTaskIdentifierKey] = [NSNumber numberWithInteger:self.nsTaskIdentifier];
     dict[RemoteUrlKey] = self.remoteUrl;
-    dict[LocalFilePathKey] = self.localFilePath;
+    dict[LocalFilePathKey] = [self _relativeSavePathFromAbsolute:self.localFilePath];
+    
     if ( self.params !=  nil ) dict[ParamsKey] = self.params;
     dict[AttemptsKey] = [NSNumber numberWithInteger:self.attemptCount];
     dict[StatusKey] = [NSNumber numberWithInteger:self.status];
@@ -128,13 +129,54 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
         self.marker = dict[MarkerKey];
         self.nsTaskIdentifier = [dict[NSTaskIdentifierKey] integerValue];
         self.remoteUrl = dict[RemoteUrlKey];
-        self.localFilePath = dict[LocalFilePathKey];
+        self.localFilePath = [self _absoluteSavePathFromRelative:dict[LocalFilePathKey]];
         self.params = dict[ParamsKey];
         self.attemptCount = [dict[AttemptsKey] integerValue];
         self.status = [dict[StatusKey] integerValue];
     }
     
     return self;
+}
+
+- (NSString *)_absoluteSavePathFromRelative:(NSString *)path
+{
+    NSRange range = [path rangeOfString:@"/var/mobile"];
+    
+    if (range.location != 0)
+    {
+        range = [path rangeOfString:@"/private/var"];
+    }
+    
+    if (range.location != 0)
+    {
+        path = [[self _basePath] stringByAppendingPathComponent:path];
+    }
+    
+    return path;
+}
+
+- (NSString *)_relativeSavePathFromAbsolute:(NSString *)path
+{
+    NSMutableString *URL = [path mutableCopy];
+    NSRange baseRange = [URL rangeOfString:[self _basePath]];
+    
+    if (baseRange.location != NSNotFound)
+    {
+        [URL deleteCharactersInRange:baseRange];
+    }
+    
+    return [URL copy];
+}
+
+- (NSString *)_basePath
+{
+    static NSURL *baseURL;
+    
+    if (!baseURL) {
+        baseURL = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
+    }
+    
+    return baseURL.path;
 }
 
 @end

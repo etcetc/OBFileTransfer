@@ -557,7 +557,6 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         return;
     }
     
-    
     NSString *marker = obtask.marker;
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)task.response;
     NSError *serverError = [self createErrorFromHttpResponse:response.statusCode];
@@ -595,7 +594,7 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             error = serverError;
         }
         
-        BOOL shouldRetry =  ( [self isRetryableClientError:clientError] && [self isRetryableServerError:serverError] ) &&
+        BOOL shouldRetry = ( [self isRetryableClientError:clientError] && [self isRetryableServerError:serverError] ) &&
         ( self.maxAttempts == 0 ||  obtask.attemptCount < self.maxAttempts);
         
         if ( shouldRetry ) {
@@ -738,14 +737,14 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         NSError * error;
         NSString *localFilePath = [[[self transferTaskManager] transferTaskForNSTask: downloadTask] localFilePath];
         
-        // If the file already exists, remove it and overwrite it
-        if ( [[NSFileManager defaultManager] fileExistsAtPath:localFilePath] ) {
-            [[NSFileManager defaultManager] removeItemAtPath:localFilePath error:&error];
-        }
+        [[NSFileManager defaultManager] removeItemAtPath:localFilePath error:&error];
         
-        [[NSFileManager defaultManager] copyItemAtPath:location.path toPath:localFilePath  error:&error];
-        if ( error != nil ) {
-            OB_ERROR(@"Unable to copy downloaded file to '%@' due to error: %@",localFilePath,error.localizedDescription);
+        BOOL success = [[NSFileManager defaultManager] moveItemAtPath:location.path
+                                                               toPath:localFilePath
+                                                                error:&error];
+        
+        if (!success) {
+            OB_ERROR(@"Unable to move downloaded file to '%@' due to error: %@",localFilePath,error.localizedDescription);
         } else {
             [self.transferTaskManager update:obtask withStatus: FileTransferDownloadFileReady];
         }
