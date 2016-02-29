@@ -1,0 +1,6 @@
+RELEASE NOTES 0.8.0
+===================
+
+
+FEATURE - Log XML Error responses from S3.
+-------------------------------------------

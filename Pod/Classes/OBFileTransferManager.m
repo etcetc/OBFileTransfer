@@ -679,6 +679,24 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 }
 
 
+// -------
+// Log any xml data
+// -------
+
+- (void)URLSession:(NSURLSession *)session
+          dataTask:(NSURLSessionDataTask *)dataTask
+    didReceiveData:(nonnull NSData *)data
+{
+    if (dataTask.state == NSURLSessionTaskStateCompleted &&
+        [dataTask.response.MIMEType isEqualToString:@"application/xml"]) // S3 returns detailed desciptions for errors encoded in XML
+    {
+        NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        if (result)
+        {
+            OB_DEBUG(@"XML response: %@", result);
+        }
+    }
+}
 
 // ------
 // Upload
