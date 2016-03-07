@@ -743,6 +743,15 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 // Completed the download
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
+    if ([downloadTask.response.MIMEType isEqualToString:@"application/xml"]) // S3 returns detailed desciptions for errors encoded in XML
+    {
+        NSString *result = [[NSString alloc] initWithContentsOfURL:location encoding:NSUTF8StringEncoding error:nil];
+        if (result)
+        {
+            OB_DEBUG(@"XML response: %@", result);
+        }
+    }
+    
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:downloadTask];
     if (obtask == nil){
         OB_ERROR(@"FTM:downloadTaskDidFinishDownloading: Got nil obtask for downloadTask: %@ This should never happen. Current_state: %@", downloadTask, [self currentState]);

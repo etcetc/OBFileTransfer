@@ -4,3 +4,7 @@ RELEASE NOTES 0.8.0
 
 FEATURE - Log XML Error responses from S3.
 -------------------------------------------
+
+
+Fix 0.8.1
+XML Error logging in case of download completed as well.
