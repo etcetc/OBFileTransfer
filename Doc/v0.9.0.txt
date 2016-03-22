@@ -1,0 +1,24 @@
+RELEASE NOTES 0.9.0
+===================
+
+
+BUG - Time too skewed for S3 requests that retry 15 minutes or more after they were first created.
+--------------------------------------------------------------------------------------------------
+
+PROBLEM:
+When we create the S3 Request for download we would put a timestamp in the header. When this request is retried eventually the timestamp becomes stale relative to the current time on the S3 server and we get TimeTooSkewed error from S3
+
+SOLUTION:
+Create download requests using AWS pre-signed URL with a lifetime timestamp that is longer than 15 minutes. We have set this to 1 week.
+
+
+PROBLEM:
+If device clock is set to wrong time we will get a TimeTooSkewed error for downloads and uploads.
+
+SOLUTION:
+In case of timeTooSkeweed error:
+  - Adjust runtimeClockSkew in AWS sdk using the difference between local clock and time reported by the server in the error.
+  - Persist this runtimeClockSkew in user defaults
+  - Update AwsSdk runtimeClockSkew from persisted value before creating any new requests
+  - Retry the request
+
