@@ -14,11 +14,10 @@
  */
 
 #import "AmazonClientManager.h"
-
-
 #import "AmazonKeyChainWrapper.h"
 #import "AmazonTVMClient.h"
 #import "OBLogger.h"
+#import <AWSRuntime/AmazonSDKUtil.h>
 
 static AmazonS3Client       *s3  = nil;
 static AmazonTVMClient      * _tvm = nil;
@@ -26,6 +25,7 @@ static AmazonRegion _awsRegion;
 static AmazonCredentials * _noTvmCredentials = nil;
 
 NSString * const kAmazonTokenHeader = @"x-amz-security-token";
+NSString * const kTimeOffsetKeyName = @"kTimeOffsetKeyName";
 
 @interface AmazonClientManager ()
 @end
@@ -65,6 +65,14 @@ NSString * const kAmazonTokenHeader = @"x-amz-security-token";
 +(void) setRegion: (AmazonRegion) region
 {
     _awsRegion = region;
+}
+
++(void)setTimeOffset:(NSTimeInterval)offset
+{
+    [AmazonSDKUtil setRuntimeClockSkew:offset];
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setDouble:offset forKey:kTimeOffsetKeyName];
+    [defaults synchronize];
 }
 
 +(Response *)validateCredentials
@@ -124,6 +132,11 @@ NSString * const kAmazonTokenHeader = @"x-amz-security-token";
     
     // If _awsRegion is not set the AwsRegion enum defaults to US_EAST_1.
     s3.endpoint = [AmazonEndpoints s3Endpoint:_awsRegion];
+    
+    NSTimeInterval offset = [[NSUserDefaults standardUserDefaults] floatForKey:kTimeOffsetKeyName];
+    OB_INFO(@"Using Amazon S3 clock offset: %1.0f", offset);
+    [AmazonSDKUtil setRuntimeClockSkew:offset];
+
 }
 
 +(NSString *) securityToken
