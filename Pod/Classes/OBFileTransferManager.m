@@ -569,7 +569,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)task.response;
     NSError *serverError = [self createErrorFromHttpResponse:response.statusCode];
     
-    if ( task.state != NSURLSessionTaskStateCompleted ) {
+    if ( task.state != NSURLSessionTaskStateCompleted )
+    {
+        [self.S3ExceptionHandler removeResponseForTask:task];
         OB_ERROR(@"Indicated that task completed but state = %d", (int) task.state );
         return;
     }
@@ -579,6 +581,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     
     // No error.
     if (serverError == nil && clientError == nil){
+        
+        [self.S3ExceptionHandler removeResponseForTask:task];
+
         if (obtask.typeUpload){
             [self uploadCompleted: obtask];
         } else if (obtask.status != FileTransferDownloadFileReady ) {
