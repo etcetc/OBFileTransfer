@@ -57,19 +57,22 @@ NSString * const OBS3NoTvmSecurityTokenParam = @"S3NoTvmSecurityTokenParam";
     else
         filename = urlComponents[@"filename"];
     
-    S3GetObjectRequest * getRequest = [[S3GetObjectRequest alloc] initWithKey:filename
-                                                                   withBucket:urlComponents[@"bucketName"]];
-    
     OB_INFO(@"Creating S3 download file request from bucket:%@ key:%@",urlComponents[@"bucketName"], filename);
+    
+    S3GetPreSignedURLRequest * getRequest = [S3GetPreSignedURLRequest new];
+    getRequest.key = filename;
+    getRequest.bucket = urlComponents[@"bucketName"];
+    getRequest.expires = [NSDate dateWithTimeIntervalSinceNow:60*60*24*7]; // 7 days
     getRequest.endpoint =[AmazonClientManager s3].endpoint;
     [getRequest setSecurityToken:[AmazonClientManager securityToken]];
-    NSMutableURLRequest *request = [[AmazonClientManager s3] signS3Request:getRequest];
+    getRequest.protocol = @"https";
     
-    // We have to copy over because request is actually a sublass of NSMutableREquest and can cause problems
-    NSMutableURLRequest* request2 = [[NSMutableURLRequest alloc]initWithURL:request.URL];
-    [request2 setHTTPMethod:request.HTTPMethod];
-    [request2 setAllHTTPHeaderFields:[request allHTTPHeaderFields]];
-    return request2;
+    NSURL *url = [[AmazonClientManager s3] getPreSignedURL:getRequest];
+    
+    NSMutableURLRequest* request = [NSMutableURLRequest new];
+    request.HTTPMethod = @"GET";
+    request.URL = url;
+    return request;
 }
 
 // Upload the file to S3
