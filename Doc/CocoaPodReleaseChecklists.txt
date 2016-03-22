@@ -36,12 +36,13 @@ To Collaborate
   $ git add -A && git commit -m "Release 0.0.2."
   $ git tag '0.0.2'
   $ git push --tags
+  $ git push
 
 - Lint to make sure repo is corect
   $ pod spec lint
 
 - Push the updated podspec to our Private-Cocoapods repo
-  $ rvm 1.9.3
-  $  pod repo push --allow-warnings Private-Cocoapods OBFileTransfer.podspec
+  $ rvm 2.0.0
+  $ pod repo push --allow-warnings Private-Cocoapods OBFileTransfer.podspec
 
 - Pod install should now pull in the newer version unless you specify and older version in the podfile.
