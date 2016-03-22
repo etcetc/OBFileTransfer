@@ -14,28 +14,21 @@
  */
 
 #import <Foundation/Foundation.h>
-#import <AWSRuntime/AWSRuntime.h>
 
-#import <AWSS3/AWSS3.h>
-#import "Response.h"
+#import <AWSRuntime/AmazonServiceException.h>
+#import "AmazonUnmarshallerXMLParserDelegate.h"
 
-
-@interface AmazonClientManager:NSObject {
+/** Parse an error response from Amazon S3 and construct the corresponding
+ * AWSServiceException object.
+ *
+ */
+@interface S3ErrorResponseHandler:AmazonUnmarshallerXMLParserDelegate {
 }
 
-@property (nonatomic,strong) NSString * tvmServerUrl;
+/** The exception represented by the XML */
+@property (nonatomic, readonly) AmazonServiceException *exception;
 
-+(AmazonS3Client *)s3;
-+(void)setTvmServerUrl: (NSString *) tvmServerUrl;
-+(void)setNoTvmCredentials:(AmazonCredentials *)credentials;
-+(void)setRegion: (AmazonRegion)region;
-+(void)setTimeOffset:(NSTimeInterval)offset;
-+(Response *)validateCredentials;
-+(void)wipeAllCredentials;
-+(BOOL)wipeCredentialsOnAuthError:(NSError *)error;
-
-+(NSString *)securityToken;
-
-extern NSString * const kAmazonTokenHeader;
+/** Initialize the object with the an HTTP status code */
+-(id)initWithStatusCode:(int32_t)statusCode;
 
 @end

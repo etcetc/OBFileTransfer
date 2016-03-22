@@ -21,6 +21,7 @@
 #import "OBFileTransferTaskManager.h"
 #import "OBNetwork.h"
 #import "OBFTMError.h"
+#import "OBS3ExceptionHandler.h"
 
 // *********************************
 // The File Transfer Manager
@@ -37,6 +38,9 @@
 @property (nonatomic,strong) OBFileTransferTaskManager * transferTaskManager;
 @property (nonatomic,strong) NSDictionary * configParams;
 @property BOOL timerEngaged;
+@property (nonatomic, strong, readonly) NSMutableDictionary <NSURLSessionTask *, NSMutableData *> *XMLResponses;
+@property (nonatomic, strong) OBS3ExceptionHandler *S3ExceptionHandler;
+
 @end
 
 
@@ -62,6 +66,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     self = [super init];
     if (self){
         _backgroundTaskIdentifier = UIBackgroundTaskInvalid;
+        _XMLResponses = [NSMutableDictionary new];
+        _S3ExceptionHandler = [OBS3ExceptionHandler new];
+
     }
     return self;
 }
@@ -557,11 +564,14 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         return;
     }
     
+    
     NSString *marker = obtask.marker;
     NSHTTPURLResponse *response =   (NSHTTPURLResponse *)task.response;
     NSError *serverError = [self createErrorFromHttpResponse:response.statusCode];
     
-    if ( task.state != NSURLSessionTaskStateCompleted ) {
+    if ( task.state != NSURLSessionTaskStateCompleted )
+    {
+        [self.S3ExceptionHandler removeResponseForTask:task];
         OB_ERROR(@"Indicated that task completed but state = %d", (int) task.state );
         return;
     }
@@ -571,6 +581,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     
     // No error.
     if (serverError == nil && clientError == nil){
+        
+        [self.S3ExceptionHandler removeResponseForTask:task];
+
         if (obtask.typeUpload){
             [self uploadCompleted: obtask];
         } else if (obtask.status != FileTransferDownloadFileReady ) {
@@ -594,8 +607,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             error = serverError;
         }
         
-        BOOL shouldRetry = ( [self isRetryableClientError:clientError] && [self isRetryableServerError:serverError] ) &&
-        ( self.maxAttempts == 0 ||  obtask.attemptCount < self.maxAttempts);
+        BOOL isRetryableServerError = [self isRetryableServerError:serverError] || [self.S3ExceptionHandler isRetryableExceptionFromTask:task];
+        BOOL isRetryableClientError = [self isRetryableClientError:clientError];
+        BOOL canAttempt = self.maxAttempts == 0 ||  obtask.attemptCount < self.maxAttempts;
+        
+        BOOL shouldRetry = isRetryableClientError && isRetryableServerError && canAttempt;
         
         if ( shouldRetry ) {
             [[self transferTaskManager] queueForRetry:obtask];
@@ -606,6 +622,8 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             OB_WARN(@"%@ for %@ done with error %@", transferType, marker, error);
         }
     }
+    
+    [self.S3ExceptionHandler removeResponseForTask:task];
 }
 
 // Note this is correct handling for S3 errors. If we find that various agents are different with respect to determining permanent failures
@@ -684,17 +702,37 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 // -------
 
 - (void)URLSession:(NSURLSession *)session
-          dataTask:(NSURLSessionDataTask *)dataTask
-    didReceiveData:(nonnull NSData *)data
+          dataTask:(NSURLSessionDataTask *)task
+    didReceiveData:(nonnull NSData *)receivedData
 {
-    if (dataTask.state == NSURLSessionTaskStateCompleted &&
-        [dataTask.response.MIMEType isEqualToString:@"application/xml"]) // S3 returns detailed desciptions for errors encoded in XML
+    if (![task.response.MIMEType isEqualToString:@"application/xml"])
     {
-        NSString *result = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-        if (result)
+        return;
+    }
+    
+    if (task.state == NSURLSessionTaskStateRunning || task.state == NSURLSessionTaskStateCompleted)
+    {
+        NSMutableData *data = self.XMLResponses[task];
+        
+        if (!data)
         {
-            OB_DEBUG(@"XML response: %@", result);
+            data = [NSMutableData new];
+            self.XMLResponses[task] = data;
         }
+        
+        [data appendData:receivedData];
+    }
+    
+    if (task.state == NSURLSessionTaskStateCompleted || task.state == NSURLSessionTaskStateCanceling)
+    {
+        NSMutableData *data = self.XMLResponses[task];
+        
+        if (data)
+        {
+            [self.S3ExceptionHandler addResponse:data forTask:task];
+        }
+        
+        [self.XMLResponses removeObjectForKey:task];
     }
 }
 
@@ -743,22 +781,14 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 // Completed the download
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location
 {
-    if ([downloadTask.response.MIMEType isEqualToString:@"application/xml"]) // S3 returns detailed desciptions for errors encoded in XML
-    {
-        NSString *result = [[NSString alloc] initWithContentsOfURL:location encoding:NSUTF8StringEncoding error:nil];
-        if (result)
-        {
-            OB_DEBUG(@"XML response: %@", result);
-        }
-    }
-    
+    NSHTTPURLResponse *response = (NSHTTPURLResponse *)downloadTask.response;
+
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:downloadTask];
     if (obtask == nil){
         OB_ERROR(@"FTM:downloadTaskDidFinishDownloading: Got nil obtask for downloadTask: %@ This should never happen. Current_state: %@", downloadTask, [self currentState]);
         return;
     }
     
-    NSHTTPURLResponse *response =   (NSHTTPURLResponse *)downloadTask.response;
     if ( response.statusCode/100 == 2   ) {
         // Now we need to copy the file to our downloads location...
         NSError * error;
@@ -776,6 +806,9 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
             [self.transferTaskManager update:obtask withStatus: FileTransferDownloadFileReady];
         }
     } else {
+        
+        [self.S3ExceptionHandler addResponse:[NSData dataWithContentsOfURL:location] forTask:downloadTask];
+        
         OB_ERROR(@"FTM:downloadTaskDidFinishDownloading: got non 200 response for downloadTask: %@ This should never happen. Current_state: %@ reponse: %@",downloadTask, [self currentState], response);
     }
 }
