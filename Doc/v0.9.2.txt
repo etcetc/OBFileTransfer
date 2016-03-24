@@ -1,0 +1,13 @@
+RELEASE NOTES 0.9.2
+===================
+
+
+BUG - Time too skewed for S3 requests that retry 15 minutes or more after they were first created.
+--------------------------------------------------------------------------------------------------
+
+PROBLEM:
+Amazon SDK can't handle some cases with RequestClockTooSkewed because it uses current clock offset for calculating new offset too.
+
+SOLUTION:
+Do not use persistence for offset.
+
