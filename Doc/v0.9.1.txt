@@ -1,0 +1,19 @@
+RELEASE NOTES 0.9.1
+===================
+
+
+BUG - Time too skewed for S3 requests that retry 15 minutes or more after they were first created.
+--------------------------------------------------------------------------------------------------
+
+PROBLEM:
+Amazon SDK can't handle some cases with RequestClockTooSkewed because it uses current clock offset for calculating new offset too.
+
+SOLUTION:
+Reset offset when system clock changes
+
+
+PROBLEM:
+OBS3ExceptionHandler doesn't fix RequestClockTooSkewed problem in some cases
+
+SOLUTION:
+Do not relay on `- (void)URLSession:(NSURLSession *)session dataTask:(NSURLSessionDataTask *)task didReceiveData:(nonnull NSData *)receivedData`. It may not be called.

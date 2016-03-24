@@ -555,7 +555,17 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
 // NOTE: Server errors are not reported through the error parameter. The only errors your delegate receives through the error parameter are client-side errors, such as being unable to resolve the hostname or connect to the host. Server errors need to be discerned from the response.
 - (void) URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)clientError
 {
+    NSMutableData *data = self.XMLResponses[task];
+    
+    if (data)
+    {
+        [self.S3ExceptionHandler addResponse:data forTask:task];
+    }
+    
+    [self.XMLResponses removeObjectForKey:task];
+
     OBFileTransferTask * obtask = [[self transferTaskManager] transferTaskForNSTask:task];
+    
     if ( obtask == nil ) {
         if ( clientError.code == NSURLErrorCancelled )
             OB_INFO(@"Unable to find reference for task Identifier %lu because it had been cancelled",(unsigned long)task.taskIdentifier);
@@ -591,11 +601,11 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         }
         [self handleCompleted:task obtask:obtask error:error];
         OB_INFO(@"%@ for %@ done", transferType, marker);
-        return;
+        
     }
     
     // Error. (More readable than nested else statments.)
-    if (serverError != nil || clientError != nil) {
+    else if (serverError != nil || clientError != nil) {
         if (clientError != nil){
             OB_WARN(@"%@ File Transfer for %@ received client error: %@", transferType, marker, clientError);
             error = clientError;
@@ -722,18 +732,7 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
         
         [data appendData:receivedData];
     }
-    
-    if (task.state == NSURLSessionTaskStateCompleted || task.state == NSURLSessionTaskStateCanceling)
-    {
-        NSMutableData *data = self.XMLResponses[task];
-        
-        if (data)
-        {
-            [self.S3ExceptionHandler addResponse:data forTask:task];
-        }
-        
-        [self.XMLResponses removeObjectForKey:task];
-    }
+
 }
 
 // ------

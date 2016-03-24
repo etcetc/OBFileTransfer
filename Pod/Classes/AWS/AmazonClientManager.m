@@ -18,6 +18,7 @@
 #import "AmazonTVMClient.h"
 #import "OBLogger.h"
 #import <AWSRuntime/AmazonSDKUtil.h>
+#import "OBSystemTimeObserver.h"
 
 static AmazonS3Client       *s3  = nil;
 static AmazonTVMClient      * _tvm = nil;
@@ -32,13 +33,25 @@ NSString * const kTimeOffsetKeyName = @"kTimeOffsetKeyName";
 
 @implementation AmazonClientManager
 
-+(AmazonS3Client *)s3
++ (AmazonS3Client *)s3
 {
     [AmazonClientManager validateCredentials];
+    [self observeClockChanges];
     return s3;
 }
 
-+(void)setTvmServerUrl: (NSString *) tvmServerUrl;
++ (void)observeClockChanges
+{
+    static OBSystemTimeObserver *observer;
+    
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        observer = [OBSystemTimeObserver new];
+        [observer startObserving];
+    });
+}
+
++ (void)setTvmServerUrl: (NSString *) tvmServerUrl;
 {
     if (tvmServerUrl == nil || [tvmServerUrl isEqualToString:@""]){
         OB_INFO(@"Using S3 without TokenVendingMachine");
@@ -114,6 +127,17 @@ NSString * const kTimeOffsetKeyName = @"kTimeOffsetKeyName";
     return ableToGetToken;
 }
 
++ (void)initialize
+{
+    if (self == [AmazonClientManager class])
+    {
+        NSTimeInterval persistedOffset = [[NSUserDefaults standardUserDefaults] floatForKey:kTimeOffsetKeyName];
+        
+        OB_INFO(@"Using Amazon S3 clock offset: %1.0f", persistedOffset);
+        [AmazonSDKUtil setRuntimeClockSkew:persistedOffset];
+    }
+}
+
 +(void)initClients
 {
     if (_tvm != nil) {
@@ -132,11 +156,6 @@ NSString * const kTimeOffsetKeyName = @"kTimeOffsetKeyName";
     
     // If _awsRegion is not set the AwsRegion enum defaults to US_EAST_1.
     s3.endpoint = [AmazonEndpoints s3Endpoint:_awsRegion];
-    
-    NSTimeInterval offset = [[NSUserDefaults standardUserDefaults] floatForKey:kTimeOffsetKeyName];
-    OB_INFO(@"Using Amazon S3 clock offset: %1.0f", offset);
-    [AmazonSDKUtil setRuntimeClockSkew:offset];
-
 }
 
 +(NSString *) securityToken

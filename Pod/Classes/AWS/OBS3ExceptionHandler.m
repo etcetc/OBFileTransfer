@@ -48,7 +48,7 @@ static NSString *MIMEApplicationXML = @"application/xml";
         {
             NSXMLParser *parser = [[NSXMLParser alloc] initWithData:data];
             S3ErrorResponseHandler *errorHandler =
-            [[S3ErrorResponseHandler alloc] initWithStatusCode:response.statusCode];
+            [[S3ErrorResponseHandler alloc] initWithStatusCode:(int32_t)response.statusCode];
             [parser setDelegate:errorHandler];
             [parser parse];
             
