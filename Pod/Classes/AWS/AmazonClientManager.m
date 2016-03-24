@@ -26,7 +26,6 @@ static AmazonRegion _awsRegion;
 static AmazonCredentials * _noTvmCredentials = nil;
 
 NSString * const kAmazonTokenHeader = @"x-amz-security-token";
-NSString * const kTimeOffsetKeyName = @"kTimeOffsetKeyName";
 
 @interface AmazonClientManager ()
 @end
@@ -83,9 +82,6 @@ NSString * const kTimeOffsetKeyName = @"kTimeOffsetKeyName";
 +(void)setTimeOffset:(NSTimeInterval)offset
 {
     [AmazonSDKUtil setRuntimeClockSkew:offset];
-    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setDouble:offset forKey:kTimeOffsetKeyName];
-    [defaults synchronize];
 }
 
 +(Response *)validateCredentials
@@ -125,17 +121,6 @@ NSString * const kTimeOffsetKeyName = @"kTimeOffsetKeyName";
     }
     
     return ableToGetToken;
-}
-
-+ (void)initialize
-{
-    if (self == [AmazonClientManager class])
-    {
-        NSTimeInterval persistedOffset = [[NSUserDefaults standardUserDefaults] floatForKey:kTimeOffsetKeyName];
-        
-        OB_INFO(@"Using Amazon S3 clock offset: %1.0f", persistedOffset);
-        [AmazonSDKUtil setRuntimeClockSkew:persistedOffset];
-    }
 }
 
 +(void)initClients
