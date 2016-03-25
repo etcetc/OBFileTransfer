@@ -76,7 +76,7 @@ static NSString *MIMEApplicationXML = @"application/xml";
     
     if (!exception)
     {
-        return YES;
+        return NO;
     }
     
     if ([exception.errorCode isEqualToString:RequestTimeTooSkewedErrorCode])
