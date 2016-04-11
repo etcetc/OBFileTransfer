@@ -108,7 +108,7 @@ NSString * key;
 
         if (error == nil)
         {
-            return [handler handleResponse:response.statusCode body:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ];
+            return [handler handleResponse:(int)response.statusCode body:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ];
         }
     } while (delegate.failed && retries-- > 0);
 

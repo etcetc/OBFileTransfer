@@ -73,7 +73,7 @@ NSString * const kOBFileTransferMetadataKey = @"_metadata";
         NSString* fileContents =   [NSString stringWithContentsOfFile:mimeTypesPath encoding:NSUTF8StringEncoding error:&error];
         
         if ( error != nil ) {
-            [NSException raise:@"Unable to read file mimeTypes.txt" format:nil];
+            [NSException raise:@"Unable to read file mimeTypes.txt" format:@""];
         }
         
         NSArray* lines = [fileContents componentsSeparatedByCharactersInSet: [NSCharacterSet newlineCharacterSet]];

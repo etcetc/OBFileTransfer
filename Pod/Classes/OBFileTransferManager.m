@@ -414,18 +414,29 @@ static NSString * const OBFileTransferSessionIdentifier = @"com.onebeat.fileTran
     
     //    Not sure yet what the right thing to do is.... Even if we know the netowrk is not available, should we
     //    go through the motions of retrying, or just reset the timer?
+
+    /*
+
     if ( YES || [OBNetwork isInternetAvailable] ) {
-        NSArray *pendingTasks = [self.transferTaskManager pendingTasks];
-        if ( pendingTasks.count > 0 ) {
-            OB_INFO(@"Retrying %lu pending tasks",(unsigned long)pendingTasks.count);
-            for ( OBFileTransferTask * obTask in [self.transferTaskManager pendingTasks] ) {
-                [self processObTask: obTask];
-            }
-        }
+
+        ...
+
     } else {
         OB_INFO(@"Not retrying because network is not available");
         [self setupRetryTimer];
     }
+
+    */
+
+    NSArray *pendingTasks = [self.transferTaskManager pendingTasks];
+    
+    if ( pendingTasks.count > 0 ) {
+        OB_INFO(@"Retrying %lu pending tasks",(unsigned long)pendingTasks.count);
+        for ( OBFileTransferTask * obTask in [self.transferTaskManager pendingTasks] ) {
+            [self processObTask: obTask];
+        }
+    }
+
 }
 
 #pragma mark -- Internal
