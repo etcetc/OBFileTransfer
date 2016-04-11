@@ -1,0 +1,13 @@
+RELEASE NOTES 0.9.3
+===================
+
+
+Improved compatibility with cocoapod frameworks
+
+--------------------------------------------------------------------------------------------------
+
+PROBLEM:
+Runtime exception when using use_framework! directive
+
+SOLUTION:
+Using `[[NSBundle bundleForClass:[self class]]` instead of `[NSBundle mainBundle] `
