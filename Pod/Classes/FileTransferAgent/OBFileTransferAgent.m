@@ -68,7 +68,7 @@ NSString * const kOBFileTransferMetadataKey = @"_metadata";
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         NSError *error;
-        NSString * mimeTypesPath = [[NSBundle mainBundle] pathForResource:@"mimeTypes" ofType:@"txt"];
+        NSString * mimeTypesPath = [[NSBundle bundleForClass:[self class]] pathForResource:@"mimeTypes" ofType:@"txt"];
         // read everything from text
         NSString* fileContents =   [NSString stringWithContentsOfFile:mimeTypesPath encoding:NSUTF8StringEncoding error:&error];
         

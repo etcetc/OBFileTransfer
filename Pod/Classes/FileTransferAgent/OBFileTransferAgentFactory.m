@@ -46,7 +46,7 @@ NSString * const kAgentsPlistFile = @"FileTransferAgents";
 
 +(NSDictionary *) readPlistFile
 {
-    NSString *filePath = [[NSBundle mainBundle] pathForResource:kAgentsPlistFile ofType:@"plist"];
+    NSString *filePath = [[NSBundle bundleForClass:[self class]] pathForResource:kAgentsPlistFile ofType:@"plist"];
     NSFileManager *fileManager = [NSFileManager defaultManager];
     
     if ( filePath == nil || ![fileManager fileExistsAtPath: filePath] )
