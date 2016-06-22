@@ -20,22 +20,30 @@
 #import "Response.h"
 
 
-@interface AmazonClientManager:NSObject {
+@interface AmazonClientManager : NSObject
+{
 }
 
-@property (nonatomic,strong) NSString * tvmServerUrl;
+@property (nonatomic, strong) NSString *tvmServerUrl;
 
-+(AmazonS3Client *)s3;
-+(void)setTvmServerUrl: (NSString *) tvmServerUrl;
-+(void)setNoTvmCredentials:(AmazonCredentials *)credentials;
-+(void)setRegion: (AmazonRegion)region;
-+(void)setTimeOffset:(NSTimeInterval)offset;
-+(Response *)validateCredentials;
-+(void)wipeAllCredentials;
-+(BOOL)wipeCredentialsOnAuthError:(NSError *)error;
++ (AmazonS3Client *)s3;
 
-+(NSString *)securityToken;
++ (void)setTvmServerUrl:(NSString *)tvmServerUrl;
 
-extern NSString * const kAmazonTokenHeader;
++ (void)setNoTvmCredentials:(AmazonCredentials *)credentials;
+
++ (void)setRegion:(AmazonRegion)region;
+
++ (void)setTimeOffset:(NSTimeInterval)offset;
+
++ (Response *)validateCredentials;
+
++ (void)wipeAllCredentials;
+
++ (BOOL)wipeCredentialsOnAuthError:(NSError *)error;
+
++ (NSString *)securityToken;
+
+extern NSString *const kAmazonTokenHeader;
 
 @end

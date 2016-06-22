@@ -7,20 +7,19 @@
 //
 
 #import "OBNetwork.h"
-#include<unistd.h>
 #include<netdb.h>
 
 @implementation OBNetwork
 
-+(BOOL)isInternetAvailable
++ (BOOL)isInternetAvailable
 {
     return [self isReachable:@"google.com"];
 }
 
-+(BOOL) isReachable: (NSString *) domain
++ (BOOL)isReachable:(NSString *)domain
 {
     struct hostent *hostinfo;
-    hostinfo = gethostbyname ([domain UTF8String]);
+    hostinfo = gethostbyname([domain UTF8String]);
     return hostinfo == NULL ? NO : YES;
 }
 

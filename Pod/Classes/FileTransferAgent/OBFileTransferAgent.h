@@ -14,22 +14,25 @@
 //  FilenameParamKey: contains the uploaded filename. Default: it is pulled from the input filename
 //  ContentTypeParamKey: contains the content type to use.  Default: it is extracted from the filename extension.
 //  FormFileFieldNameParamKey: contains the field name containing the file. Default: file.
-extern NSString * const FilenameParamKey;
-extern NSString * const ContentTypeParamKey;
-extern NSString * const kOBFileTransferMetadataKey;
+extern NSString *const FilenameParamKey;
+extern NSString *const ContentTypeParamKey;
+extern NSString *const kOBFileTransferMetadataKey;
 
 
 @interface OBFileTransferAgent : NSObject <OBFileTransferAgentProtocol>
 
-@property (nonatomic,strong) NSDictionary *configParams;
+@property (nonatomic, strong) NSDictionary *configParams;
 
 // Default initializer
--(instancetype) initWithConfig:(NSDictionary *)configParams;
+- (instancetype)initWithConfig:(NSDictionary *)configParams;
 
 // Derive the mime type from the filename type extension
--(NSString *)filenameFromFilepath: (NSString *)filePath;
--(NSString *)mimeTypeFromFilename: (NSString *)filename;
--(NSDictionary *)removeSpecialParams: (NSDictionary *)params;
--(NSString *)serializeParams:(NSDictionary *)params;
+- (NSString *)filenameFromFilepath:(NSString *)filePath;
+
+- (NSString *)mimeTypeFromFilename:(NSString *)filename;
+
+- (NSDictionary *)removeSpecialParams:(NSDictionary *)params;
+
+- (NSString *)serializeParams:(NSDictionary *)params;
 
 @end

@@ -8,9 +8,9 @@
 
 #import "OBFileTransferAgent.h"
 
-extern NSString * const OBGoogleCloudStorageApiKey;
-extern NSString * const OBGoogleCloudStorageProjectId;
-extern NSString * const OBGoogleCloudStorageProtocol ;
+extern NSString *const OBGoogleCloudStorageApiKey;
+extern NSString *const OBGoogleCloudStorageProjectId;
+extern NSString *const OBGoogleCloudStorageProtocol;
 
 @interface OBGoogleCloudStorageFileTransferAgent : OBFileTransferAgent
 

@@ -10,91 +10,102 @@
 
 @implementation OBServerFileTransferAgent
 
-NSString * const OBHttpFormBoundary = @"the!-boundary!-marker!";
+NSString *const OBHttpFormBoundary = @"the!-boundary!-marker!";
 
 // Parameter to use to determine the field name for the multipart file metadata
-NSString * const OBFormFileFieldNameParamKey = @"_fileFieldName";
+NSString *const OBFormFileFieldNameParamKey = @"_fileFieldName";
 
 // Create a GET request to a standard URL.  Note that any parameters may be passed in the params
 // structure or else be in the sourceFileUrl
-- (NSMutableURLRequest *) downloadFileRequest:(NSString *)sourcefileUrl withParams:(NSDictionary *)params
+- (NSMutableURLRequest *)downloadFileRequest:(NSString *)sourcefileUrl withParams:(NSDictionary *)params
 {
     NSString *fullSourceFileUrl = sourcefileUrl;
-    if ( params.count > 0 ) {
-        if ( [sourcefileUrl rangeOfString:@"?"].location ==  NSNotFound )
-            fullSourceFileUrl = [NSString stringWithFormat:@"%@?%@",sourcefileUrl,[self serializeParams:params]];
+    if (params.count > 0)
+    {
+        if ([sourcefileUrl rangeOfString:@"?"].location == NSNotFound)
+            fullSourceFileUrl = [NSString stringWithFormat:@"%@?%@", sourcefileUrl, [self serializeParams:params]];
         else
-            fullSourceFileUrl = [NSString stringWithFormat:@"%@&%@",sourcefileUrl,[self serializeParams:params]];
+            fullSourceFileUrl = [NSString stringWithFormat:@"%@&%@", sourcefileUrl, [self serializeParams:params]];
     }
-    
-    NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:fullSourceFileUrl]];
+
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:fullSourceFileUrl]];
     [request setHTTPMethod:@"GET"];
     return request;
 }
 
 // Create a multipart/form-data POST request to upload the file to the indicated URL
 // Special internal parameters as well as other passed-on params can be added.  See OBFileTransferAgent.h/m
--(NSMutableURLRequest *) uploadFileRequest:(NSString *)filePath to:(NSString *)targetUrl withParams:(NSDictionary *)params
+- (NSMutableURLRequest *)uploadFileRequest:(NSString *)filePath
+                                        to:(NSString *)targetUrl
+                                withParams:(NSDictionary *)params
 {
-    NSMutableURLRequest* request = [[NSMutableURLRequest alloc]initWithURL:[NSURL URLWithString:targetUrl]];
-    
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:targetUrl]];
+
     [request setHTTPMethod:@"POST"];
-    
+
     [request setValue:@"Keep-Alive" forHTTPHeaderField:@"Connection"];
     [request setValue:@"no-cache" forHTTPHeaderField:@"Cache-Control"];
-    [request setValue:[NSString stringWithFormat:@"multipart/form-data;boundary=%@", OBHttpFormBoundary ] forHTTPHeaderField:@"Content-Type"];
-    
-    
+    [request setValue:[NSString stringWithFormat:@"multipart/form-data;boundary=%@", OBHttpFormBoundary]
+   forHTTPHeaderField:@"Content-Type"];
+
+
     NSMutableData *body = [[NSMutableData alloc] init];
 
-    if ( filePath != nil ) {
+    if (filePath != nil)
+    {
         NSString *formFileInputName = params[OBFormFileFieldNameParamKey] == nil ? @"file" : params[OBFormFileFieldNameParamKey];
-        NSString *filename = params[FilenameParamKey] == nil ? [[filePath pathComponents] lastObject] : params[FilenameParamKey];
-        NSString *contentType =params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
+        NSString *filename = params[FilenameParamKey] == nil ? [[filePath pathComponents]
+                lastObject] : params[FilenameParamKey];
+        NSString *contentType = params[ContentTypeParamKey] ? params[ContentTypeParamKey] : [self mimeTypeFromFilename:filePath];
 
-        NSMutableString *preString =  [[NSMutableString alloc] init];
+        NSMutableString *preString = [[NSMutableString alloc] init];
         [preString appendString:[NSString stringWithFormat:@"--%@\r\n", OBHttpFormBoundary]];
-        [preString appendString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",formFileInputName,filename]];
-        [preString appendString:[NSString stringWithFormat:@"Content-Type: %@\r\n",contentType]];
+        [preString appendString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n",
+                                                           formFileInputName,
+                                                           filename]];
+        [preString appendString:[NSString stringWithFormat:@"Content-Type: %@\r\n", contentType]];
         [preString appendString:@"Content-Transfer-Encoding: binary\r\n"];
         [preString appendString:@"\r\n"];
 
 
         [body appendData:[preString dataUsingEncoding:NSUTF8StringEncoding]];
         [body appendData:[NSData dataWithContentsOfFile:filePath]];
-        [body appendData:[@"\r\n"dataUsingEncoding:NSUTF8StringEncoding]];
+        [body appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
     }
-    
-    NSDictionary * coreParams = [self removeSpecialParams:params];
-    if ( coreParams.count > 0 ) {
+
+    NSDictionary *coreParams = [self removeSpecialParams:params];
+    if (coreParams.count > 0)
+    {
         NSMutableString *paramsString = [NSMutableString new];
-        
+
         // add params (all params are strings)
-        for (NSString *param in [coreParams allKeys]) {
+        for (NSString *param in [coreParams allKeys])
+        {
             [paramsString appendString:[NSString stringWithFormat:@"--%@\r\n", OBHttpFormBoundary]];
-            [paramsString appendString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n", param]];
+            [paramsString appendString:[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"\r\n\r\n",
+                                                                  param]];
             [paramsString appendString:[NSString stringWithFormat:@"%@\r\n", coreParams[param]]];
         }
-        
+
         [body appendData:[paramsString dataUsingEncoding:NSUTF8StringEncoding]];
     }
-    
-    NSString *postString =  [NSString stringWithFormat:@"--%@--\r\n", OBHttpFormBoundary];
-    
+
+    NSString *postString = [NSString stringWithFormat:@"--%@--\r\n", OBHttpFormBoundary];
+
     [body appendData:[postString dataUsingEncoding:NSUTF8StringEncoding]];
-    
+
     [request setHTTPBody:body];
     return request;
 }
 
--(NSDictionary *)removeSpecialParams: (NSDictionary *)params
+- (NSDictionary *)removeSpecialParams:(NSDictionary *)params
 {
-    NSMutableDictionary * p = [NSMutableDictionary dictionaryWithDictionary: [super removeSpecialParams:params]];
+    NSMutableDictionary *p = [NSMutableDictionary dictionaryWithDictionary:[super removeSpecialParams:params]];
     [p removeObjectForKey:OBFormFileFieldNameParamKey];
     return p;
 }
 
--(BOOL) hasMultipartBody
+- (BOOL)hasMultipartBody
 {
     return YES;
 }

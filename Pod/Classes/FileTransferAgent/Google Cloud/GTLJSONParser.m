@@ -59,93 +59,98 @@
 
 + (NSString *)stringWithObject:(id)obj
                  humanReadable:(BOOL)humanReadable
-                         error:(NSError **)error {
-  NSData *data = [self dataWithObject:obj
-                        humanReadable:humanReadable
-                                error:error];
-  if (data) {
-    NSString *jsonStr = [[NSString alloc] initWithData:data
-                                               encoding:NSUTF8StringEncoding];
-    return jsonStr;
-  }
-  return nil;
+                         error:(NSError **)error
+{
+    NSData *data = [self dataWithObject:obj
+                          humanReadable:humanReadable
+                                  error:error];
+    if (data)
+    {
+        NSString *jsonStr = [[NSString alloc] initWithData:data
+                                                  encoding:NSUTF8StringEncoding];
+        return jsonStr;
+    }
+    return nil;
 }
 
 + (NSData *)dataWithObject:(id)obj
              humanReadable:(BOOL)humanReadable
-                     error:(NSError **)error {
-  if (obj == nil) return nil;
+                     error:(NSError **)error
+{
+    if (obj == nil) return nil;
 
-  const NSUInteger kOpts = humanReadable ? (1UL << 0) : 0; // NSJSONWritingPrettyPrinted
+    const NSUInteger kOpts = humanReadable ? (1UL << 0) : 0; // NSJSONWritingPrettyPrinted
 
 #if GTL_REQUIRES_NSJSONSERIALIZATION
-  NSData *data = [NSJSONSerialization dataWithJSONObject:obj
-                                                 options:kOpts
-                                                   error:error];
-  return data;
+    NSData *data = [NSJSONSerialization dataWithJSONObject:obj
+                                                   options:kOpts
+                                                     error:error];
+    return data;
 #else
-  Class serializer = NSClassFromString(@"NSJSONSerialization");
-  if (serializer) {
-    NSData *data = [serializer dataWithJSONObject:obj
-                                          options:kOpts
-                                            error:error];
-    return data;
-  } else {
-    Class jsonWriteClass = NSClassFromString(@"SBJsonWriter");
-    if (!jsonWriteClass) {
-      jsonWriteClass = NSClassFromString(@"SBJSON");
+    Class serializer = NSClassFromString(@"NSJSONSerialization");
+    if (serializer) {
+      NSData *data = [serializer dataWithJSONObject:obj
+                                            options:kOpts
+                                              error:error];
+      return data;
+    } else {
+      Class jsonWriteClass = NSClassFromString(@"SBJsonWriter");
+      if (!jsonWriteClass) {
+        jsonWriteClass = NSClassFromString(@"SBJSON");
+      }
+
+      if (error) *error = nil;
+
+      GTLSBJSON *writer = [[jsonWriteClass alloc] init];
+      [writer setHumanReadable:humanReadable];
+      NSString *jsonStr = [writer stringWithObject:obj
+                                             error:error];
+      NSData *data = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
+      return data;
     }
-
-    if (error) *error = nil;
-
-    GTLSBJSON *writer = [[jsonWriteClass alloc] init];
-    [writer setHumanReadable:humanReadable];
-    NSString *jsonStr = [writer stringWithObject:obj
-                                           error:error];
-    NSData *data = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
-    return data;
-  }
 #endif
 }
 
 + (id)objectWithString:(NSString *)jsonStr
-                 error:(NSError **)error {
-  NSData *data = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
-  return [self objectWithData:data
-                        error:error];
+                 error:(NSError **)error
+{
+    NSData *data = [jsonStr dataUsingEncoding:NSUTF8StringEncoding];
+    return [self objectWithData:data
+                          error:error];
 }
 
 + (id)objectWithData:(NSData *)jsonData
-               error:(NSError **)error {
+               error:(NSError **)error
+{
 #if GTL_REQUIRES_NSJSONSERIALIZATION
-  NSMutableDictionary *obj = [NSJSONSerialization JSONObjectWithData:jsonData
-                                                             options:NSJSONReadingMutableContainers
-                                                               error:error];
-  return obj;
+    NSMutableDictionary *obj = [NSJSONSerialization JSONObjectWithData:jsonData
+                                                               options:NSJSONReadingMutableContainers
+                                                                 error:error];
+    return obj;
 #else
-  Class serializer = NSClassFromString(@"NSJSONSerialization");
-  if (serializer) {
-    const NSUInteger kOpts = (1UL << 0); // NSJSONReadingMutableContainers
-    NSMutableDictionary *obj = [serializer JSONObjectWithData:jsonData
-                                                      options:kOpts
-                                                        error:error];
-    return obj;
-  } else {
-    Class jsonParseClass = NSClassFromString(@"SBJsonParser");
-    if (!jsonParseClass) {
-      jsonParseClass = NSClassFromString(@"SBJSON");
+    Class serializer = NSClassFromString(@"NSJSONSerialization");
+    if (serializer) {
+      const NSUInteger kOpts = (1UL << 0); // NSJSONReadingMutableContainers
+      NSMutableDictionary *obj = [serializer JSONObjectWithData:jsonData
+                                                        options:kOpts
+                                                          error:error];
+      return obj;
+    } else {
+      Class jsonParseClass = NSClassFromString(@"SBJsonParser");
+      if (!jsonParseClass) {
+        jsonParseClass = NSClassFromString(@"SBJSON");
+      }
+
+      if (error) *error = nil;
+
+      GTLSBJSON *parser = [[jsonParseClass alloc] init];
+
+      NSString *jsonrep = [[NSString alloc] initWithData:jsonData
+                                                 encoding:NSUTF8StringEncoding];
+      id obj = [parser objectWithString:jsonrep
+                                  error:error];
+      return obj;
     }
-
-    if (error) *error = nil;
-
-    GTLSBJSON *parser = [[jsonParseClass alloc] init];
-
-    NSString *jsonrep = [[NSString alloc] initWithData:jsonData
-                                               encoding:NSUTF8StringEncoding];
-    id obj = [parser objectWithString:jsonrep
-                                error:error];
-    return obj;
-  }
 #endif
 }
 

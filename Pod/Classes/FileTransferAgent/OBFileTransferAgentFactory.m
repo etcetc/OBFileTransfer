@@ -8,7 +8,7 @@
 
 #import "OBFileTransferAgentFactory.h"
 
-NSString * const kAgentsPlistFile = @"FileTransferAgents";
+NSString *const kAgentsPlistFile = @"FileTransferAgents";
 
 @interface OBFileTransferAgentFactory ()
 @end
@@ -18,25 +18,31 @@ NSString * const kAgentsPlistFile = @"FileTransferAgents";
 // Return an instance of the fileStore file transfer agent
 // This reads the Class names from the fileStoreAgents.plist
 // Config Params is a hash that contains the configuration params for all the protocols, so it's indexed by strings such as "s3", "http", etc.
-+(OBFileTransferAgent *)fileTransferAgentInstance:(NSString *)remoteUrl withConfig: (NSDictionary *)configParams
++ (OBFileTransferAgent *)fileTransferAgentInstance:(NSString *)remoteUrl withConfig:(NSDictionary *)configParams
 {
     NSString *protocol;
     NSRange r = [remoteUrl rangeOfString:@"://"];
-    if ( r.location == NSNotFound )
-        [[NSException exceptionWithName:@"OBFTMRemoteProtocolNotFound" reason:@"Remote URL must contain protocol" userInfo:nil] raise];
+    if (r.location == NSNotFound)
+        [[NSException exceptionWithName:@"OBFTMRemoteProtocolNotFound"
+                                 reason:@"Remote URL must contain protocol"
+                               userInfo:nil] raise];
     protocol = [remoteUrl substringToIndex:r.location];
-    NSString * agentClassName = [self agents][protocol];
-    if ( agentClassName == nil )
-        [[NSException exceptionWithName:@"OBFTMProtocolAgentNotFound" reason:[NSString stringWithFormat:@"Agent for protocol %@ not found", protocol] userInfo:nil] raise];
+    NSString *agentClassName = [self agents][protocol];
+    if (agentClassName == nil)
+        [[NSException exceptionWithName:@"OBFTMProtocolAgentNotFound"
+                                 reason:[NSString stringWithFormat:@"Agent for protocol %@ not found", protocol]
+                               userInfo:nil] raise];
     id agentClass = NSClassFromString(agentClassName);
-    if ( agentClass == nil )
-        [[NSException exceptionWithName:@"OBFTMProtocolAgentClassNotFound" reason:[NSString stringWithFormat:@"Class %@ not loaded", agentClassName] userInfo:nil] raise];
-    return [[agentClass alloc ] initWithConfig:configParams];
+    if (agentClass == nil)
+        [[NSException exceptionWithName:@"OBFTMProtocolAgentClassNotFound"
+                                 reason:[NSString stringWithFormat:@"Class %@ not loaded", agentClassName]
+                               userInfo:nil] raise];
+    return [[agentClass alloc] initWithConfig:configParams];
 }
 
-+(NSDictionary *)agents
++ (NSDictionary *)agents
 {
-    static NSDictionary * _agents;
+    static NSDictionary *_agents;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
         _agents = [self readPlistFile];
@@ -44,14 +50,16 @@ NSString * const kAgentsPlistFile = @"FileTransferAgents";
     return _agents;
 }
 
-+(NSDictionary *) readPlistFile
++ (NSDictionary *)readPlistFile
 {
     NSString *filePath = [[NSBundle bundleForClass:[self class]] pathForResource:kAgentsPlistFile ofType:@"plist"];
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    
-    if ( filePath == nil || ![fileManager fileExistsAtPath: filePath] )
-        [[NSException exceptionWithName:@"OBFTMAgentsPlistFileMissing" reason:@"Error: Unable to find the file transfer agents plist file" userInfo:nil] raise];
-    
+
+    if (filePath == nil || ![fileManager fileExistsAtPath:filePath])
+        [[NSException exceptionWithName:@"OBFTMAgentsPlistFileMissing"
+                                 reason:@"Error: Unable to find the file transfer agents plist file"
+                               userInfo:nil] raise];
+
     return [NSDictionary dictionaryWithContentsOfFile:filePath];
 }
 

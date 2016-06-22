@@ -8,7 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-typedef NS_ENUM(NSUInteger, OBFTMErrorCode) {
+typedef NS_ENUM(NSUInteger, OBFTMErrorCode)
+{
     OBFTMUnknownError = -1,
     OBFTMTmpFileCreateError = -2,
     OBFTMTmpDownloadFileCopyError = -3,
@@ -17,8 +18,9 @@ typedef NS_ENUM(NSUInteger, OBFTMErrorCode) {
 
 @interface OBFTMError : NSObject
 
-+(NSString *) errorDomain;
-+(NSString *) localizedDescription: (OBFTMErrorCode) errorCode;
++ (NSString *)errorDomain;
+
++ (NSString *)localizedDescription:(OBFTMErrorCode)errorCode;
 
 
 @end

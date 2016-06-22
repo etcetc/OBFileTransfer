@@ -8,28 +8,29 @@
 
 #import "OBFileTransferTask.h"
 
-@interface OBFileTransferTask()
+@interface OBFileTransferTask ()
 @end
 
-NSString * const CreatedOnKey = @"created_on";
-NSString * const TypeUploadKey = @"upload";
-NSString * const MarkerKey = @"marker";
-NSString * const NSTaskIdentifierKey = @"nsTaskIdentifier";
-NSString * const RemoteUrlKey = @"remoteUrl";
-NSString * const LocalFilePathKey = @"localFilePath";
-NSString * const ParamsKey = @"params";
-NSString * const AttemptsKey = @"attempts";
-NSString * const StatusKey = @"status";
-NSString * const CountOfBytesExpectedToReceiveKey = @"CountOfBytesExpectedToReceiveKey";
-NSString * const CountOfBytesReceivedKey  = @"CountOfBytesReceivedKey";
-NSString * const CountOfBytesExpectedToSendKey  = @"CountOfBytesExpectedToSendKey";
-NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
+NSString *const CreatedOnKey = @"created_on";
+NSString *const TypeUploadKey = @"upload";
+NSString *const MarkerKey = @"marker";
+NSString *const NSTaskIdentifierKey = @"nsTaskIdentifier";
+NSString *const RemoteUrlKey = @"remoteUrl";
+NSString *const LocalFilePathKey = @"localFilePath";
+NSString *const ParamsKey = @"params";
+NSString *const AttemptsKey = @"attempts";
+NSString *const StatusKey = @"status";
+NSString *const CountOfBytesExpectedToReceiveKey = @"CountOfBytesExpectedToReceiveKey";
+NSString *const CountOfBytesReceivedKey = @"CountOfBytesReceivedKey";
+NSString *const CountOfBytesExpectedToSendKey = @"CountOfBytesExpectedToSendKey";
+NSString *const CountOfBytesSentKey = @"CountOfBytesSentKey";
 
 @implementation OBFileTransferTask
 
--(instancetype) init
+- (instancetype)init
 {
-    if ( self = [super init] ) {
+    if (self = [super init])
+    {
         self.createdOn = [NSDate date];
         self.attemptCount = 0;
     }
@@ -37,9 +38,11 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
 }
 
 #pragma mark - Descriptors
--(NSString *) statusDescription
+
+- (NSString *)statusDescription
 {
-    switch (self.status) {
+    switch (self.status)
+    {
         case FileTransferInProgress:
             return @"Processing";
             break;
@@ -55,16 +58,24 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
     return @"WTF! ";
 }
 
--(NSString *)transferDirection
+- (NSString *)transferDirection
 {
     return self.typeUpload ? @"Upload" : @"Download";
 }
 
--(NSString *) description {
-    return [NSString stringWithFormat:@"%@ %@ task '%@' id %lu remote:%@ local:%@ [%ld]", [self statusDescription],self.transferDirection, self.marker, (unsigned long)self.nsTaskIdentifier, self.remoteUrl, self.localFilePath,(long)self.attemptCount];
+- (NSString *)description
+{
+    return [NSString stringWithFormat:@"%@ %@ task '%@' id %lu remote:%@ local:%@ [%ld]",
+                                      [self statusDescription],
+                                      self.transferDirection,
+                                      self.marker,
+                                      (unsigned long)self.nsTaskIdentifier,
+                                      self.remoteUrl,
+                                      self.localFilePath,
+                                      (long)self.attemptCount];
 }
 
--(NSDictionary *) info
+- (NSDictionary *)info
 {
     return [self asDictionary];
 }
@@ -74,7 +85,7 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
 
 // Some methods to help w/ archiving the state
 // WARNING - not used right now but keep around just in case....
--(void) encodeWithCoder:(NSCoder *)aCoder
+- (void)encodeWithCoder:(NSCoder *)aCoder
 {
     [aCoder encodeObject:self.createdOn forKey:CreatedOnKey];
     [aCoder encodeBool:self.typeUpload forKey:TypeUploadKey];
@@ -88,9 +99,10 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
 }
 
 // WARNING - not used right now but keep around just in case....
--(instancetype) initWithCoder:(NSCoder *)aDecoder
+- (instancetype)initWithCoder:(NSCoder *)aDecoder
 {
-    if ( self = [super init] ) {
+    if (self = [super init])
+    {
         self.createdOn = [aDecoder decodeObjectForKey:CreatedOnKey];
         self.typeUpload = [aDecoder decodeBoolForKey:TypeUploadKey];
         self.marker = [aDecoder decodeObjectForKey:MarkerKey];
@@ -105,7 +117,7 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
 }
 
 // Simplify the object so we can save it as a dictionary and restore it appropriately
--(NSDictionary *) asDictionary
+- (NSDictionary *)asDictionary
 {
     NSMutableDictionary *dict = [NSMutableDictionary new];
     dict[CreatedOnKey] = self.createdOn;
@@ -114,16 +126,17 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
     dict[NSTaskIdentifierKey] = [NSNumber numberWithInteger:self.nsTaskIdentifier];
     dict[RemoteUrlKey] = self.remoteUrl;
     dict[LocalFilePathKey] = [self _relativeSavePathFromAbsolute:self.localFilePath];
-    
-    if ( self.params !=  nil ) dict[ParamsKey] = self.params;
+
+    if (self.params != nil) dict[ParamsKey] = self.params;
     dict[AttemptsKey] = [NSNumber numberWithInteger:self.attemptCount];
     dict[StatusKey] = [NSNumber numberWithInteger:self.status];
     return dict;
 }
 
--(instancetype) initFromDictionary:(NSDictionary *)dict
+- (instancetype)initFromDictionary:(NSDictionary *)dict
 {
-    if ( [self init] ) {
+    if ([self init])
+    {
         self.createdOn = dict[CreatedOnKey];
         self.typeUpload = [dict[TypeUploadKey] boolValue];
         self.marker = dict[MarkerKey];
@@ -134,24 +147,24 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
         self.attemptCount = [dict[AttemptsKey] integerValue];
         self.status = [dict[StatusKey] integerValue];
     }
-    
+
     return self;
 }
 
 - (NSString *)_absoluteSavePathFromRelative:(NSString *)path
 {
     NSRange range = [path rangeOfString:@"/var/mobile"];
-    
+
     if (range.location != 0)
     {
         range = [path rangeOfString:@"/private/var"];
     }
-    
+
     if (range.location != 0)
     {
         path = [[self _basePath] stringByAppendingPathComponent:path];
     }
-    
+
     return path;
 }
 
@@ -159,23 +172,26 @@ NSString * const CountOfBytesSentKey  = @"CountOfBytesSentKey";
 {
     NSMutableString *URL = [path mutableCopy];
     NSRange baseRange = [URL rangeOfString:[self _basePath]];
-    
+
     if (baseRange.location != NSNotFound)
     {
         [URL deleteCharactersInRange:baseRange];
     }
-    
+
     return [URL copy];
 }
 
 - (NSString *)_basePath
 {
     static NSURL *baseURL;
-    
-    if (!baseURL) {
-        baseURL = [[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject];
+
+    if (!baseURL)
+    {
+        baseURL = [[[NSFileManager defaultManager]
+                URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask]
+                firstObject];
     }
-    
+
     return baseURL.path;
 }
 

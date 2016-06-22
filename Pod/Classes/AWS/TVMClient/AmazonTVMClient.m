@@ -15,7 +15,6 @@
 
 #import "AmazonTVMClient.h"
 #import "AmazonKeyChainWrapper.h"
-#import <AWSRuntime/AWSRuntime.h>
 
 #import "RequestDelegate.h"
 
@@ -31,36 +30,41 @@
 
 @synthesize endpoint, useSSL;
 
-NSString * uid;
-NSString * key;
+NSString *uid;
+NSString *key;
 
--(id)initWithEndpoint:(NSString *)theEndpoint useSSL:(bool)usingSSL;
+- (id)initWithEndpoint:(NSString *)theEndpoint useSSL:(bool)usingSSL;
 {
-    if ((self = [super init])) {
+    if ((self = [super init]))
+    {
         self.endpoint = [self getEndpointDomain:[theEndpoint lowercaseString]];
-        self.useSSL   = usingSSL;
+        self.useSSL = usingSSL;
     }
 
     return self;
 }
 
--(Response *)anonymousRegister
+- (Response *)anonymousRegister
 {
     Response *response = [[Response alloc] initWithCode:200 andMessage:@"OK"];
 
-    NSString * uid = [AmazonKeyChainWrapper getUidForDevice];
-    if (  uid == nil || uid.length == 0 ) {
+    NSString *uid = [AmazonKeyChainWrapper getUidForDevice];
+    if (uid == nil || uid.length == 0)
+    {
         uid = [Crypto generateRandomString];
         key = [Crypto generateRandomString];
 
-        RegisterDeviceRequest *request = [[RegisterDeviceRequest alloc] initWithEndpoint:self.endpoint andUid:uid andKey:key usingSSL:self.useSSL] ;
-        ResponseHandler       *handler = [[ResponseHandler alloc] init] ;
+        RegisterDeviceRequest *request = [[RegisterDeviceRequest alloc]
+                initWithEndpoint:self.endpoint andUid:uid andKey:key usingSSL:self.useSSL];
+        ResponseHandler *handler = [[ResponseHandler alloc] init];
 
         response = [self processRequest:request responseHandler:handler];
-        if ( [response wasSuccessful]) {
+        if ([response wasSuccessful])
+        {
             [AmazonKeyChainWrapper registerDeviceId:uid andKey:key];
         }
-        else {
+        else
+        {
             AMZLogDebug(@"Token Vending Machine responded with Code: [%d] and Messgae: [%@]", response.code, response.message);
         }
     }
@@ -68,69 +72,83 @@ NSString * key;
     return response;
 }
 
--(Response *)getToken
+- (Response *)getToken
 {
 //    TODO: currently testing using static UID's which we are not getting from the keychain wrapper
 
-    NSString         *uid = [AmazonKeyChainWrapper getUidForDevice];
-    NSString         *key = [AmazonKeyChainWrapper getKeyForDevice];
+    NSString *uid = [AmazonKeyChainWrapper getUidForDevice];
+    NSString *key = [AmazonKeyChainWrapper getKeyForDevice];
 
-    AMZLogDebug(@"getToken uid=%@",uid);
-    Request          *request = [[GetTokenRequest alloc] initWithEndpoint:self.endpoint andUid:uid andKey:key usingSSL:self.useSSL] ;
-    ResponseHandler  *handler = [[GetTokenResponseHandler alloc] initWithKey:key] ;
+    AMZLogDebug(@"getToken uid=%@", uid);
+    Request *request = [[GetTokenRequest alloc]
+            initWithEndpoint:self.endpoint andUid:uid andKey:key usingSSL:self.useSSL];
+    ResponseHandler *handler = [[GetTokenResponseHandler alloc] initWithKey:key];
 
     GetTokenResponse *response = (GetTokenResponse *)[self processRequest:request responseHandler:handler];
 
-    if ( [response wasSuccessful]) {
-        [AmazonKeyChainWrapper storeCredentialsInKeyChain:response.accessKey secretKey:response.secretKey securityToken:response.securityToken expiration:response.expirationDate];
+    if ([response wasSuccessful])
+    {
+        [AmazonKeyChainWrapper storeCredentialsInKeyChain:response.accessKey
+                                                secretKey:response.secretKey
+                                            securityToken:response.securityToken
+                                               expiration:response.expirationDate];
     }
-    else {
+    else
+    {
         AMZLogDebug(@"Token Vending Machine responded with Code: [%d] and Messgae: [%@]", response.code, response.message);
     }
 
     return response;
 }
 
--(Response *)processRequest:(Request *)request responseHandler:(ResponseHandler *)handler
+- (Response *)processRequest:(Request *)request responseHandler:(ResponseHandler *)handler
 {
-    int             retries   = 2;
-    RequestDelegate *delegate = [[RequestDelegate alloc] init] ;
+    int retries = 2;
+    RequestDelegate *delegate = [[RequestDelegate alloc] init];
 
-    do {
+    do
+    {
         AMZLogDebug(@"Request URL: %@", [request buildRequestUrl]);
 
-        NSURL             *url        = [[NSURL alloc] initWithString:[request buildRequestUrl]] ;
-        NSURLRequest      *theRequest = [NSURLRequest requestWithURL:url cachePolicy:NSURLRequestUseProtocolCachePolicy timeoutInterval:30.0];
-        NSError           *error      = nil;
-        NSHTTPURLResponse *response   = nil;
+        NSURL *url = [[NSURL alloc] initWithString:[request buildRequestUrl]];
+        NSURLRequest *theRequest = [NSURLRequest requestWithURL:url
+                                                    cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                timeoutInterval:30.0];
+        NSError *error = nil;
+        NSHTTPURLResponse *response = nil;
 
-        NSData            *data       = [NSURLConnection sendSynchronousRequest:theRequest returningResponse:&response error:&error];
+        NSData *data = [NSURLConnection sendSynchronousRequest:theRequest returningResponse:&response error:&error];
 
         if (error == nil)
         {
-            return [handler handleResponse:(int)response.statusCode body:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ];
+            return [handler handleResponse:(int)response.statusCode
+                                      body:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
         }
     } while (delegate.failed && retries-- > 0);
 
-    return [[Response alloc] initWithCode:500 andMessage:delegate.responseBody] ;
+    return [[Response alloc] initWithCode:500 andMessage:delegate.responseBody];
 }
 
--(NSString *)getEndpointDomain:(NSString *)originalEndpoint
+- (NSString *)getEndpointDomain:(NSString *)originalEndpoint
 {
     NSRange endpointRange;
 
-    if ( [originalEndpoint hasPrefix:@"http://"] || [originalEndpoint hasPrefix:@"https://"]) {
+    if ([originalEndpoint hasPrefix:@"http://"] || [originalEndpoint hasPrefix:@"https://"])
+    {
         NSRange startOfDomain = [originalEndpoint rangeOfString:@"://"];
         endpointRange.location = startOfDomain.location + 3;
     }
-    else {
+    else
+    {
         endpointRange.location = 0;
     }
 
-    if ( [originalEndpoint hasSuffix:@"/"]) {
+    if ([originalEndpoint hasSuffix:@"/"])
+    {
         endpointRange.length = ([originalEndpoint length] - 1) - endpointRange.location;
     }
-    else {
+    else
+    {
         endpointRange.length = [originalEndpoint length] - endpointRange.location;
     }
 

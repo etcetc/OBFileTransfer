@@ -10,7 +10,8 @@
 
 @interface OBNetwork : NSObject
 
-+(BOOL)isInternetAvailable;
-+(BOOL) isReachable: (NSString *) domain;
++ (BOOL)isInternetAvailable;
+
++ (BOOL)isReachable:(NSString *)domain;
 
 @end

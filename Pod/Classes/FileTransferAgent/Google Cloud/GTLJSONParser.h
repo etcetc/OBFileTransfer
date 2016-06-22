@@ -24,13 +24,13 @@
 
 
 @interface GTLJSONParser : NSObject
-+ (NSString*)stringWithObject:(id)value
-                humanReadable:(BOOL)humanReadable
-                        error:(NSError**)error;
++ (NSString *)stringWithObject:(id)value
+                 humanReadable:(BOOL)humanReadable
+                         error:(NSError **)error;
 
 + (NSData *)dataWithObject:(id)obj
              humanReadable:(BOOL)humanReadable
-                     error:(NSError**)error;
+                     error:(NSError **)error;
 
 + (id)objectWithString:(NSString *)jsonStr
                  error:(NSError **)error;
