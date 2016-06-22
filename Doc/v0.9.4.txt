@@ -1,0 +1,4 @@
+RELEASE NOTES 0.9.4
+===================
+
+Crash fix and improved formatting
